@@ -1,16 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import type { ReportCommentDTO, ReportDTO } from '@lab/shared'
+import type { DeadlineDTO, ReportCommentDTO, ReportDTO, ReportSectionDTO, ReportTemplateDTO } from '@lab/shared'
 import { REPORT_EDITABLE_STATUSES } from '@lab/shared'
-import { api, apiDownload, apiErrorMessage, formatDateTime } from '../api/client'
+import { ApiError, api, apiDownload, apiErrorMessage, formatDateTime } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
 import { Badge, Button, Card, Field, Input, Modal, Spinner, useToast } from '../ui'
-import { RichEditor } from './reports/RichEditor'
 import { CommentPanel } from './reports/CommentPanel'
 import { ReportPreview } from './reports/ReportPreview'
 import { ReportStatusBadge } from './reports/ReportStatusBadge'
+import { RichEditor } from './reports/RichEditor'
+import { SectionedEditor, composeSectionsHtml } from './reports/SectionedEditor'
+import { deadlineSourceLabel, isPastDeadline } from './reports/deadline'
 import { buildPrintHtml } from './reports/printHtml'
-import { toDisplayHtml, toStorageHtml } from './reports/mediaHtml'
+import { isBlankHtml, toDisplayHtml, toStorageHtml } from './reports/mediaHtml'
+
+/** legacy：旧版单富文本；sectioned：按模版小节逐节填写 */
+type EditorMode = 'legacy' | 'sectioned'
+
+interface Draft {
+  title: string
+  html: string
+  sections: ReportSectionDTO[]
+}
+
+function sameDraft(left: Draft, right: Draft): boolean {
+  return left.title === right.title && left.html === right.html && JSON.stringify(left.sections) === JSON.stringify(right.sections)
+}
 
 export default function ReportEditorPage() {
   const { id } = useParams<{ id: string }>()
@@ -20,8 +35,13 @@ export default function ReportEditorPage() {
 
   const [report, setReport] = useState<ReportDTO | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mode, setMode] = useState<EditorMode>('legacy')
   const [title, setTitle] = useState('')
   const [html, setHtml] = useState('')
+  const [sections, setSections] = useState<ReportSectionDTO[]>([])
+  const [template, setTemplate] = useState<ReportTemplateDTO | null>(null)
+  const [deadline, setDeadline] = useState<DeadlineDTO | null>(null)
+  const [sectionErrors, setSectionErrors] = useState<Record<string, string>>({})
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<Date | null>(null)
@@ -31,9 +51,9 @@ export default function ReportEditorPage() {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [exportingWord, setExportingWord] = useState(false)
   const [exportingPdf, setExportingPdf] = useState(false)
-  const draftRef = useRef({ title: '', html: '' })
-  const savedRef = useRef({ title: '', html: '' })
-  draftRef.current = { title, html }
+  const draftRef = useRef<Draft>({ title: '', html: '', sections: [] })
+  const savedRef = useRef<Draft>({ title: '', html: '', sections: [] })
+  draftRef.current = { title, html, sections }
 
   useEffect(() => {
     if (!id) return
@@ -43,12 +63,41 @@ export default function ReportEditorPage() {
       try {
         const dto = await api<ReportDTO>('/api/reports/' + id)
         if (cancelled) return
-        const display = toDisplayHtml(dto.contentHtml)
+        // 模版/截止接口可能尚未上线：失败时退回旧版单富文本编辑
+        const [activeTemplate, currentDeadline] = await Promise.all([
+          api<ReportTemplateDTO | null>('/api/templates/active').catch(() => null),
+          api<DeadlineDTO>('/api/settings/report-deadline', { query: { week: dto.week } }).catch(() => null)
+        ])
+        if (cancelled) return
+        const savedSections: ReportSectionDTO[] = (dto.sections ?? []).map((section) => ({
+          ...section,
+          contentHtml: toDisplayHtml(section.contentHtml ?? '')
+        }))
+        const displayHtml = toDisplayHtml(dto.contentHtml ?? '')
+        const hasLegacyBody = !isBlankHtml(dto.contentHtml ?? '')
+        let nextMode: EditorMode = 'legacy'
+        let nextSections: ReportSectionDTO[] = []
+        if (savedSections.length > 0) {
+          nextMode = 'sectioned'
+          nextSections = savedSections
+        } else if (activeTemplate !== null && activeTemplate.sections.length > 0 && !hasLegacyBody) {
+          nextMode = 'sectioned'
+          nextSections = activeTemplate.sections.map((section) => ({
+            key: section.key,
+            title: section.title,
+            hint: section.hint,
+            contentHtml: ''
+          }))
+        }
         setReport(dto)
+        setTemplate(activeTemplate)
+        setDeadline(currentDeadline)
+        setMode(nextMode)
         setTitle(dto.title)
-        setHtml(display)
-        draftRef.current = { title: dto.title, html: display }
-        savedRef.current = { title: dto.title, html: display }
+        setHtml(displayHtml)
+        setSections(nextSections)
+        setSectionErrors({})
+        savedRef.current = { title: dto.title, html: displayHtml, sections: nextSections }
         setDirty(false)
       } catch (err) {
         if (!cancelled) toast.push('加载周报失败：' + apiErrorMessage(err), 'error')
@@ -64,21 +113,31 @@ export default function ReportEditorPage() {
 
   const canEdit = report !== null && user !== null && report.authorId === user.id && REPORT_EDITABLE_STATUSES.includes(report.status)
 
+  useEffect(() => {
+    setDirty(!sameDraft({ title, html, sections }, savedRef.current))
+  }, [title, html, sections])
+
   const saveNow = useCallback(async (): Promise<boolean> => {
     if (!report || !canEdit) return false
-    const snapshot = { title: draftRef.current.title, html: draftRef.current.html }
+    const snapshot = draftRef.current
     setSaving(true)
     setSaveError('')
     try {
-      const updated = await api<ReportDTO>('/api/reports/' + report.id, {
-        method: 'PATCH',
-        body: { title: snapshot.title, contentHtml: toStorageHtml(snapshot.html) }
-      })
+      const body: Record<string, unknown> = { title: snapshot.title }
+      if (mode === 'sectioned') {
+        body.sections = snapshot.sections.map((section) => ({
+          key: section.key,
+          title: section.title,
+          contentHtml: toStorageHtml(section.contentHtml)
+        }))
+      } else {
+        body.contentHtml = toStorageHtml(snapshot.html)
+      }
+      const updated = await api<ReportDTO>('/api/reports/' + report.id, { method: 'PATCH', body })
       setReport(updated)
       setSavedAt(new Date())
       savedRef.current = snapshot
-      const current = draftRef.current
-      setDirty(current.title !== snapshot.title || current.html !== snapshot.html)
+      setDirty(!sameDraft(draftRef.current, snapshot))
       return true
     } catch (err) {
       setSaveError(apiErrorMessage(err))
@@ -86,7 +145,7 @@ export default function ReportEditorPage() {
     } finally {
       setSaving(false)
     }
-  }, [report, canEdit])
+  }, [report, canEdit, mode])
 
   useEffect(() => {
     if (!canEdit || !dirty) return
@@ -94,7 +153,17 @@ export default function ReportEditorPage() {
       void saveNow()
     }, 2000)
     return () => window.clearTimeout(timer)
-  }, [canEdit, dirty, title, html, saveNow])
+  }, [canEdit, dirty, title, html, sections, saveNow])
+
+  const onSectionChange = useCallback((key: string, value: string) => {
+    setSections((prev) => prev.map((section) => (section.key === key ? { ...section, contentHtml: value } : section)))
+    setSectionErrors((prev) => {
+      if (!prev[key]) return prev
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
+  }, [])
 
   const submitReport = async () => {
     if (!report) return
@@ -108,10 +177,18 @@ export default function ReportEditorPage() {
       const updated = await api<ReportDTO>('/api/reports/' + report.id + '/submit', { method: 'POST' })
       setReport(updated)
       setDirty(false)
+      setSectionErrors({})
       setConfirmOpen(false)
-      toast.push('周报已提交，等待管理员审阅', 'success')
+      toast.push(updated.late ? '周报已提交（迟交），等待管理员审阅' : '周报已提交，等待管理员审阅', 'success')
     } catch (err) {
-      toast.push('提交失败：' + apiErrorMessage(err), 'error')
+      const message = apiErrorMessage(err)
+      const missing = /《(.+?)》未填写/.exec(message)
+      const target = missing ? sections.find((section) => section.title === missing[1]) : undefined
+      if (target) {
+        setSectionErrors({ [target.key]: message })
+        setConfirmOpen(false)
+      }
+      toast.push('提交失败：' + message, 'error')
     } finally {
       setSubmitting(false)
     }
@@ -139,7 +216,7 @@ export default function ReportEditorPage() {
     }
     setExportingPdf(true)
     try {
-      const result = await bridge.printPdf({ html: buildPrintHtml(report, toStorageHtml(html)), filename: '周报-' + report.week + '.pdf' })
+      const result = await bridge.printPdf({ html: buildPrintHtml(report, toStorageHtml(previewHtml)), filename: '周报-' + report.week + '.pdf' })
       if (result.saved) toast.push('PDF 已保存' + (result.path ? '：' + result.path : ''), 'success')
       else toast.push('PDF 导出未完成' + (result.reason ? '：' + result.reason : ''), 'info')
     } catch (err) {
@@ -151,12 +228,6 @@ export default function ReportEditorPage() {
 
   const onHtmlChange = (value: string) => {
     setHtml(value)
-    setDirty(value !== savedRef.current.html || title !== savedRef.current.title)
-  }
-
-  const onTitleChange = (value: string) => {
-    setTitle(value)
-    setDirty(html !== savedRef.current.html || value !== savedRef.current.title)
   }
 
   const onComment = (comment: ReportCommentDTO) => {
@@ -175,6 +246,10 @@ export default function ReportEditorPage() {
       </Card>
     )
   }
+
+  const previewHtml = mode === 'sectioned' ? composeSectionsHtml(sections) : html
+  const deadlineOverdue = isPastDeadline(deadline)
+  const late = report.late === true
 
   const saveLabel = saving
     ? '保存中…'
@@ -212,6 +287,23 @@ export default function ReportEditorPage() {
         </div>
       </div>
 
+      {deadline ? (
+        <div className="offline-banner">
+          <Badge tone={deadlineOverdue ? 'danger' : 'info'}>{deadlineOverdue ? '已过期' : '进行中'}</Badge>
+          <span>
+            {' '}
+            本轮截止 {formatDateTime(deadline.deadline)}（{deadlineSourceLabel(deadline)}）
+            {deadlineOverdue ? '，已过期，可迟交：提交后状态标记为「迟交」，不阻断提交。' : '，逾期提交会标记为「迟交」，不阻断提交。'}
+          </span>
+        </div>
+      ) : null}
+
+      {template && mode === 'sectioned' ? (
+        <p className="muted">
+          模版：{report.templateSnapshot?.name ?? template.name}（{sections.length} 个小节，逐节填写后提交；有未填写小节时无法提交）
+        </p>
+      ) : null}
+
       {report.status === 'REJECTED' ? (
         <div className="offline-banner">
           <Badge tone="danger">已退回</Badge>
@@ -232,16 +324,22 @@ export default function ReportEditorPage() {
       ) : null}
 
       <div className="split">
-        <Card title="周报内容" extra={<ReportStatusBadge status={report.status} />}>
+        <Card title="周报内容" extra={<ReportStatusBadge status={report.status} late={late} />}>
           <div className="form-grid">
             <div className="span-2">
               <Field label="标题" hint="留空时导出使用「周报 + 周次」作为标题">
-                <Input value={title} maxLength={120} disabled={!canEdit} placeholder="例如：第 46 周工作周报" onChange={(event) => onTitleChange(event.target.value)} />
+                <Input value={title} maxLength={120} disabled={!canEdit} placeholder="例如：第 46 周工作周报" onChange={(event) => setTitle(event.target.value)} />
               </Field>
             </div>
-            <div className="span-2">
-              <RichEditor key={report.id} value={html} editable={canEdit} onChange={onHtmlChange} />
-            </div>
+            {mode === 'sectioned' ? (
+              <div className="span-2">
+                <SectionedEditor sections={sections} editable={canEdit} errors={sectionErrors} onChange={onSectionChange} />
+              </div>
+            ) : (
+              <div className="span-2">
+                <RichEditor key={report.id} value={html} editable={canEdit} onChange={onHtmlChange} />
+              </div>
+            )}
             <div className="span-2">
               <span className="muted">{saveLabel}</span>
             </div>
@@ -258,7 +356,7 @@ export default function ReportEditorPage() {
         footer={<Button onClick={() => setPreviewOpen(false)}>关闭</Button>}
       >
         <h3>{title.trim() || '周报 ' + report.week}</h3>
-        <ReportPreview html={html} />
+        <ReportPreview html={previewHtml} />
       </Modal>
 
       <Modal
@@ -277,6 +375,8 @@ export default function ReportEditorPage() {
         }
       >
         <p>提交后正文将不能修改，需等待管理员审阅。若被退回，可再次编辑并重新提交。</p>
+        {mode === 'sectioned' ? <p className="muted">当前模版共 {sections.length} 个小节，每个小节都必须填写才能提交。</p> : null}
+        {deadlineOverdue ? <p className="field-error">已过本轮截止时间，本次提交将标记为「迟交」。</p> : null}
       </Modal>
     </>
   )

@@ -11,6 +11,16 @@ const TONE: Record<ReportStatus, Tone> = {
   REJECTED: 'danger'
 }
 
-export function ReportStatusBadge({ status }: { status: ReportStatus }) {
-  return <Badge tone={TONE[status] ?? 'default'}>{REPORT_STATUS_LABEL[status] ?? status}</Badge>
+export function ReportStatusBadge({ status, late = false }: { status: ReportStatus; late?: boolean }) {
+  return (
+    <>
+      <Badge tone={TONE[status] ?? 'default'}>{REPORT_STATUS_LABEL[status] ?? status}</Badge>
+      {late ? (
+        <>
+          {' '}
+          <Badge tone="warning">迟交</Badge>
+        </>
+      ) : null}
+    </>
+  )
 }

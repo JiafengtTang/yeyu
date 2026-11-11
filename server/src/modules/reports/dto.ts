@@ -1,4 +1,5 @@
 import type { ReportCommentDTO, ReportDTO, ReportStatus, UserDTO } from '@lab/shared'
+import { parseReportSections, parseTemplateSnapshot } from './sections.js'
 
 export interface UserRef {
   id: string
@@ -22,6 +23,9 @@ export interface ReportRow {
   week: string
   title: string
   contentHtml: string
+  sectionsJson: string
+  templateSnapshotJson: string | null
+  late: boolean
   status: string
   submittedAt: Date | null
   reviewedById: string | null
@@ -55,6 +59,9 @@ export function toReportDTO(row: ReportRow): ReportDTO {
     periodEnd: row.periodEnd.toISOString(),
     title: row.title,
     contentHtml: row.contentHtml,
+    sections: parseReportSections(row.sectionsJson),
+    templateSnapshot: parseTemplateSnapshot(row.templateSnapshotJson),
+    late: row.late,
     status: row.status as ReportStatus,
     submittedAt: row.submittedAt ? row.submittedAt.toISOString() : null,
     reviewedById: row.reviewedById,

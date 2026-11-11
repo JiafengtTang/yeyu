@@ -95,6 +95,59 @@
 - `ReportEditorPage`：TipTap 富文本（标题、粗斜体、列表、引用、撤销重做、粘贴/拖拽上传图片），自动保存草稿（防抖 2s），提交确认，被退回时显示审核意见，评论串；导出 Word 调 `/export.docx`，导出 PDF 用 `window.desktop.printPdf({ html })`。
 - `ReviewPage`：管理员审阅（列表 + 预览 + 通过/退回 + 批注）。
 
+## 4A. 周报模版与提交截止（v2 新增）
+
+### 数据模型（已落地，见 `server/prisma/schema.prisma`）
+
+- `ReportTemplate`：`name, version, sectionsJson, sourceName, sourceFormat(docx|md), rawPath, isActive, createdById`
+  - `sectionsJson` = `[{ key, title, hint }]`，`key` 为 `s1..sn`（顺序稳定）
+- `Report` 新增：`sectionsJson`（`[{ key, title, hint, contentHtml }]`）、`templateId`、`templateSnapshotJson`（提交时快照 `{ name, sections:[{key,title,hint}] }`）、`late`
+- `DeadlineOverride`：`week(unique), deadline, reason`
+- `AppSetting`：键值对；截止规则存 `report.deadline.weekday`（1=周一…7=周日，默认 7）与 `report.deadline.time`（`HH:mm`，默认 `18:00`）
+
+### 模版端点
+
+| 方法 | 路径 | 权限 | 说明 |
+|---|---|---|---|
+| GET | `/api/templates` | 登录 | `ListResult<ReportTemplateDTO>`，含 `reportCount`（被多少份周报引用），按 `createdAt desc` |
+| GET | `/api/templates/active` | 登录 | 当前生效模版 `ReportTemplateDTO`；无则返回 `null`（HTTP 200） |
+| POST | `/api/templates` | 管理员 | multipart：`file`（.docx/.md/.markdown）+ 可选 `name`、`activate`（`1` 表示立即生效）。解析小节 → 201 `ReportTemplateDTO`；解析失败 → 422 并说明原因 |
+| PATCH | `/api/templates/:id/activate` | 管理员 | 置为生效模版，同时把其他模版 `isActive=false`；返回 `ReportTemplateDTO` |
+| DELETE | `/api/templates/:id` | 管理员 | 删除模版；已被周报引用时**允许删除**，历史周报靠 `templateSnapshotJson` 展示；返回 `{ ok: true }` |
+
+**解析规则（必须按此实现，前端与测试都依赖）**
+
+- `.docx`：docx 是 zip，读 `word/document.xml`；小节标题 = 样式为 `Heading 1/2/3` 或 `标题 1/2/3`（`w:pStyle w:val` 命中 `/^(Heading|标题)\s*[1-3]$/`，或段落带 `w:outlineLvl w:val<=2`）的段落；标题之间的非空段落文本（纯文本，去标签）拼接为该小节 `hint`（截断 200 字）
+- `.md`：`^#{1,3}\s+标题` 为小节，其后到下一标题之间的正文为 `hint`
+- 一个小节都没识别到 → `VALIDATION`：「未在文件中识别到小节标题，请使用 Word 的标题 1/2/3 样式或 Markdown 的 ## 标题」
+- 小节数必须 1–30，单节标题 ≤120 字
+- 不上传原始文件也应把原文落盘（`rawPath`），便于溯源；体积上限 20MB，复用 `lib/storage.ts`
+
+### 截止时间端点
+
+| 方法 | 路径 | 权限 | 说明 |
+|---|---|---|---|
+| GET | `/api/settings/report-deadline?week=` | 登录 | `DeadlineDTO`：`{ week, deadline, source: RULE|OVERRIDE, weekday, time, overrideReason }`；`week` 省略=当前 ISO 周 |
+| PATCH | `/api/settings/report-deadline` | 管理员 | body `deadlineRuleSchema`（`weekday` 1–7、`time` HH:mm）→ 写 AppSetting，返回 `{ weekday, time }` |
+| PUT | `/api/settings/report-deadline/overrides/:week` | 管理员 | body `deadlineOverrideSchema`（`deadline` ISO、`reason?`）→ upsert 覆盖，返回 `DeadlineDTO` |
+| DELETE | `/api/settings/report-deadline/overrides/:week` | 管理员 | 取消该周覆盖 → `{ ok: true }` |
+| GET | `/api/settings/report-deadline/overrides?from=&to=` | 管理员 | `ListResult<{ week, deadline, reason }>`，按 `week desc` |
+
+**计算规则**：`deadline = 该 ISO 周的周一 00:00 + (weekday-1) 天 + time`；有覆盖则直接用覆盖值（`source=OVERRIDE`）。全部按本地时区。
+
+### 周报端点的变化
+
+- `POST /api/reports`、`PATCH /api/reports/:id`：接受 `sections: [{ key, title, contentHtml }]`（`reportSectionInputSchema`）。保存时把当前生效模版的小节结构写进 `templateSnapshotJson`（仅当为空时写入，提交后不再变），`contentHtml` 仍保留（旧版自由正文兼容，`sections` 存在时可为空）
+- `POST /api/reports/:id/submit` 增加校验：**若存在生效模版，则每个小节 `contentHtml` 去标签后必须非空**，否则 `VALIDATION`：「《小节标题》未填写」；同时若提交时刻 > 本轮截止时间，置 `late=true`（**不阻断提交**，用户已选定「过期只提醒」）
+- `GET /api/reports/summary`：新增 `deadline: DeadlineDTO`；`isOverdue` 改为 `now > deadline && 本周未提交或未通过`（不再硬编码周日 18:00）
+- `ReportDTO` 新增 `sections`、`templateSnapshot`、`late`；`sections` 为空数组时表示旧版自由正文周报，前端按 `contentHtml` 渲染
+
+### 前端要求
+
+- 管理员新增「模版与截止」页（`/admin/templates`，路由与侧栏由调度方在 `App.tsx` 加好）：上传模版、列出模版（名称/小节数/是否生效/引用数）、预览小节、设为生效、删除；截止规则（周几下拉 + 时分）与当前周截止时间展示；单周覆盖的增删（输入周次或从列表选）
+- 周报编辑器：按 `/api/templates/active` 的小节逐节渲染富文本（复用 `RichEditor`，注意每节独立实例与自动保存节流）、显示小节 `hint`、显示提交截止时间与「已过期」提示；`sections` 为空的旧周报仍按原样渲染 `contentHtml`
+- 工作台：显示本周截止时间与来源（规则/覆盖），过期时标红；管理员区可见「第 X 周截止：MM-DD HH:mm（覆盖：原因）」
+
 ## 5. 媒体（调度方已实现，子任务只调用）
 
 | 方法 | 路径 | 说明 |

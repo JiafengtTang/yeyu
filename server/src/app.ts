@@ -6,6 +6,8 @@ import { registerMediaRoutes, MAX_UPLOAD_BYTES } from './lib/storage'
 import { registerUsersModule } from './modules/users/index'
 import { registerAssetsModule } from './modules/assets/index'
 import { registerReportsModule } from './modules/reports/index'
+import { registerTemplatesModule } from './modules/templates/index'
+import { registerSettingsModule } from './modules/settings/index'
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -23,6 +25,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerUsersModule(app)
   await registerAssetsModule(app)
   await registerReportsModule(app)
+  await registerTemplatesModule(app)
+  await registerSettingsModule(app)
 
   return app
 }

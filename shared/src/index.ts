@@ -108,10 +108,30 @@ export const inventoryCheckSchema = z.object({
   note: z.string().max(500).optional()
 })
 
+export const reportSectionInputSchema = z.object({
+  key: z.string().min(1).max(64),
+  title: z.string().min(1).max(120),
+  contentHtml: z.string().max(500000).default('')
+})
 export const reportSaveSchema = z.object({
   week: z.string().optional(),
   title: z.string().max(120).optional(),
-  contentHtml: z.string().max(500000).optional()
+  contentHtml: z.string().max(500000).optional(),
+  sections: z.array(reportSectionInputSchema).max(30).optional()
+})
+
+/** 周报提交截止：全局规则（1=周一 … 7=周日）+ 单周覆盖 */
+export const deadlineRuleSchema = z.object({
+  weekday: z.coerce.number().int().min(1).max(7),
+  time: z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/, '时间格式应为 HH:mm')
+})
+export const deadlineOverrideSchema = z.object({
+  deadline: z.string().min(8),
+  reason: z.string().max(200).optional()
+})
+export const uploadTemplateSchema = z.object({
+  name: z.string().min(1).max(64).optional(),
+  activate: z.union([z.literal('1'), z.literal('0'), z.boolean()]).optional()
 })
 export const reportReviewSchema = z.object({
   decision: z.enum(['APPROVED', 'REJECTED']),
@@ -220,6 +240,37 @@ export interface AuditDTO {
   createdAt: string
 }
 
+export interface TemplateSectionDTO {
+  key: string
+  title: string
+  hint: string
+}
+
+export interface ReportTemplateDTO {
+  id: string
+  name: string
+  version: number
+  sections: TemplateSectionDTO[]
+  sourceName: string | null
+  sourceFormat: 'docx' | 'md'
+  isActive: boolean
+  createdAt: string
+  reportCount: number
+}
+
+export interface ReportSectionDTO extends TemplateSectionDTO {
+  contentHtml: string
+}
+
+export interface DeadlineDTO {
+  week: string
+  deadline: string
+  source: 'RULE' | 'OVERRIDE'
+  weekday: number
+  time: string
+  overrideReason: string | null
+}
+
 export interface ReportCommentDTO {
   id: string
   reportId: string
@@ -238,6 +289,9 @@ export interface ReportDTO {
   periodEnd: string
   title: string
   contentHtml: string
+  sections: ReportSectionDTO[]
+  templateSnapshot: { name: string; sections: TemplateSectionDTO[] } | null
+  late: boolean
   status: ReportStatus
   submittedAt: string | null
   reviewedById: string | null
@@ -253,6 +307,7 @@ export interface ReportSummaryDTO {
   week: string
   mine: ReportDTO | null
   isOverdue: boolean
+  deadline: DeadlineDTO
   admin: { missing: UserDTO[]; pendingReview: number } | null
 }
 

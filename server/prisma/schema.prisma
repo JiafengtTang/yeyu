@@ -28,6 +28,7 @@ model User {
   audits          AuditLog[]
   inventoryChecks InventoryItem[] @relation("Checker")
   inventoryBatches InventoryBatch[]
+  templates       ReportTemplate[] @relation("TemplateAuthor")
 }
 
 model Media {
@@ -159,6 +160,11 @@ model Report {
   week          String
   title         String    @default("")
   contentHtml   String    @default("")
+  sectionsJson  String    @default("[]")
+  templateId    String?
+  template      ReportTemplate? @relation(fields: [templateId], references: [id])
+  templateSnapshotJson String?
+  late          Boolean   @default(false)
   status        String    @default("DRAFT")
   submittedAt   DateTime?
   reviewedById  String?
@@ -173,6 +179,38 @@ model Report {
   @@unique([authorId, periodStart])
   @@index([status])
   @@index([week])
+}
+
+model ReportTemplate {
+  id           String   @id @default(cuid())
+  name         String
+  version      Int      @default(1)
+  sectionsJson String   @default("[]")
+  sourceName   String?
+  sourceFormat String   @default("docx")
+  rawPath      String?
+  isActive     Boolean  @default(false)
+  createdById  String?
+  createdBy    User?    @relation("TemplateAuthor", fields: [createdById], references: [id])
+  createdAt    DateTime @default(now())
+
+  reports Report[]
+
+  @@index([isActive])
+}
+
+model DeadlineOverride {
+  id        String   @id @default(cuid())
+  week      String   @unique
+  deadline  DateTime
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }
 
 model ReportComment {

@@ -2,11 +2,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { FastifyInstance } from 'fastify'
-import { isoWeekKey } from '@lab/shared'
+import { isoWeekKey, weekRange } from '@lab/shared'
 import type { ReportCommentDTO, ReportDTO, ReportSummaryDTO, UserDTO } from '@lab/shared'
 import { buildApp } from '../../app.js'
 import { prisma } from '../../lib/prisma.js'
 import { signToken } from '../../plugins/auth.js'
+import { computeDeadline } from '../settings/deadline.js'
 
 const UPLOAD_ROOT = path.resolve(process.cwd(), '.tmp-reports-uploads')
 process.env.UPLOAD_DIR = UPLOAD_ROOT
@@ -27,7 +28,7 @@ let admin: Account
 let alice: Account
 let bob: Account
 
-type Method = 'GET' | 'POST' | 'PATCH'
+type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
 
 async function call(opts: { method: Method; url: string; token?: string; body?: unknown }) {
   return app.inject({
@@ -46,6 +47,10 @@ function errorCode(payload: string): string {
   return json<{ error: { code: string } }>(payload).error.code
 }
 
+function errorMessage(payload: string): string {
+  return json<{ error: { message: string } }>(payload).error.message
+}
+
 async function makeAccount(phone: string, name: string, role: 'ADMIN' | 'MEMBER'): Promise<Account> {
   const user = await prisma.user.create({
     data: { phone, name, role, status: 'ACTIVE', passwordHash: 'not-used-in-reports-tests' }
@@ -54,8 +59,11 @@ async function makeAccount(phone: string, name: string, role: 'ADMIN' | 'MEMBER'
 }
 
 async function resetData(): Promise<void> {
+  await prisma.deadlineOverride.deleteMany()
+  await prisma.appSetting.deleteMany()
   await prisma.reportComment.deleteMany()
   await prisma.report.deleteMany()
+  await prisma.reportTemplate.deleteMany()
   await prisma.auditLog.deleteMany()
   await prisma.media.deleteMany()
   await prisma.assetAttachment.deleteMany()
@@ -84,6 +92,38 @@ async function createMedia(uploaderId: string): Promise<string> {
 }
 
 const WEEK = isoWeekKey(new Date())
+
+interface TemplateSectionFixture {
+  key: string
+  title: string
+  hint: string
+}
+
+const TEMPLATE_SECTIONS: TemplateSectionFixture[] = [
+  { key: 's1', title: '本周进展', hint: '写完成的工作' },
+  { key: 's2', title: '下周计划', hint: '列出计划' }
+]
+
+async function createActiveTemplate(
+  name = '课题组周报模版',
+  sections: TemplateSectionFixture[] = TEMPLATE_SECTIONS
+): Promise<string> {
+  const row = await prisma.reportTemplate.create({
+    data: {
+      name,
+      version: 1,
+      sectionsJson: JSON.stringify(sections),
+      sourceName: 'template.md',
+      sourceFormat: 'md',
+      isActive: true
+    }
+  })
+  return row.id
+}
+
+async function overrideDeadline(week: string, deadline: Date, reason = '单周覆盖'): Promise<void> {
+  await prisma.deadlineOverride.create({ data: { week, deadline, reason } })
+}
 
 beforeAll(async () => {
   await rm(UPLOAD_ROOT, { recursive: true, force: true })
@@ -343,3 +383,221 @@ describe('真实往返', () => {
     expect(finalDto.contentHtml).toContain('下周计划做两次巡检')
   })
 })
+
+describe('周报模版小节', () => {
+  it('POST 用生效模版自动初始化小节并首次落模版快照', async () => {
+    const templateId = await createActiveTemplate()
+    const created = await call({ method: 'POST', url: '/api/reports', token: alice.token, body: { week: WEEK } })
+    expect(created.statusCode).toBe(201)
+
+    const dto = json<ReportDTO>(created.payload)
+    expect(dto.late).toBe(false)
+    expect(dto.sections).toEqual([
+      { key: 's1', title: '本周进展', hint: '写完成的工作', contentHtml: '' },
+      { key: 's2', title: '下周计划', hint: '列出计划', contentHtml: '' }
+    ])
+    expect(dto.templateSnapshot).toEqual({ name: '课题组周报模版', sections: TEMPLATE_SECTIONS })
+
+    const stored = await prisma.report.findUnique({ where: { id: dto.id } })
+    expect(stored?.templateId).toBe(templateId)
+    expect(stored?.templateSnapshotJson).toBeTruthy()
+  })
+
+  it('只填一节可存草稿并保留 hint，缺节提交返回 422「《小节标题》未填写」', async () => {
+    await createActiveTemplate()
+    const created = await call({ method: 'POST', url: '/api/reports', token: alice.token, body: { week: WEEK } })
+    const id = json<ReportDTO>(created.payload).id
+
+    const patched = await call({
+      method: 'PATCH',
+      url: '/api/reports/' + id,
+      token: alice.token,
+      body: {
+        sections: [
+          { key: 's1', title: '本周进展', contentHtml: '<p>完成了示波器校准</p>' },
+          { key: 's2', title: '下周计划', contentHtml: '' }
+        ]
+      }
+    })
+    expect(patched.statusCode).toBe(200)
+    const patchedDto = json<ReportDTO>(patched.payload)
+    expect(patchedDto.sections[0]?.contentHtml).toContain('示波器校准')
+    expect(patchedDto.sections[0]?.hint).toBe('写完成的工作')
+    expect(patchedDto.status).toBe('DRAFT')
+
+    const submitted = await call({ method: 'POST', url: '/api/reports/' + id + '/submit', token: alice.token })
+    expect(submitted.statusCode).toBe(422)
+    expect(errorCode(submitted.payload)).toBe('VALIDATION')
+    expect(errorMessage(submitted.payload)).toContain('《下周计划》未填写')
+  })
+
+  it('去标签后为空（含 &nbsp; 与 <br>）仍算未填写', async () => {
+    await createActiveTemplate()
+    const created = await call({ method: 'POST', url: '/api/reports', token: alice.token, body: { week: WEEK } })
+    const id = json<ReportDTO>(created.payload).id
+
+    await call({
+      method: 'PATCH',
+      url: '/api/reports/' + id,
+      token: alice.token,
+      body: {
+        sections: [
+          { key: 's1', title: '本周进展', contentHtml: '<p>本周完成了巡检</p>' },
+          { key: 's2', title: '下周计划', contentHtml: '<p><br></p><p>&nbsp;</p>' }
+        ]
+      }
+    })
+    const submitted = await call({ method: 'POST', url: '/api/reports/' + id + '/submit', token: alice.token })
+    expect(submitted.statusCode).toBe(422)
+    expect(errorMessage(submitted.payload)).toContain('《下周计划》未填写')
+
+    await call({
+      method: 'PATCH',
+      url: '/api/reports/' + id,
+      token: alice.token,
+      body: {
+        sections: [
+          { key: 's1', title: '本周进展', contentHtml: '<p>本周完成了巡检</p>' },
+          { key: 's2', title: '下周计划', contentHtml: '<p>下周做两次校准</p>' }
+        ]
+      }
+    })
+    const ok = await call({ method: 'POST', url: '/api/reports/' + id + '/submit', token: alice.token })
+    expect(ok.statusCode).toBe(200)
+    const submittedDto = json<ReportDTO>(ok.payload)
+    expect(submittedDto.status).toBe('SUBMITTED')
+    expect(submittedDto.sections[1]?.contentHtml).toContain('两次校准')
+    expect(submittedDto.templateSnapshot?.name).toBe('课题组周报模版')
+  })
+
+  it('模版快照首次写入后不再随模版变化', async () => {
+    await createActiveTemplate()
+    const created = await call({ method: 'POST', url: '/api/reports', token: alice.token, body: { week: WEEK } })
+    const id = json<ReportDTO>(created.payload).id
+
+    const template = await prisma.reportTemplate.findFirst({ where: { isActive: true } })
+    await prisma.reportTemplate.update({
+      where: { id: template?.id ?? '' },
+      data: {
+        name: '课题组周报模版 v2',
+        sectionsJson: JSON.stringify([{ key: 's1', title: '改版后的小节', hint: '新提示' }])
+      }
+    })
+
+    const patched = await call({
+      method: 'PATCH',
+      url: '/api/reports/' + id,
+      token: alice.token,
+      body: { sections: [{ key: 's1', title: '本周进展', contentHtml: '<p>内容</p>' }] }
+    })
+    expect(patched.statusCode).toBe(200)
+    const dto = json<ReportDTO>(patched.payload)
+    expect(dto.templateSnapshot?.name).toBe('课题组周报模版')
+    expect(dto.templateSnapshot?.sections.map((section) => section.title)).toEqual(['本周进展', '下周计划'])
+  })
+
+  it('无生效模版时 sections 为空数组（旧版自由正文兼容）', async () => {
+    const created = await call({ method: 'POST', url: '/api/reports', token: alice.token, body: { week: WEEK } })
+    expect(json<ReportDTO>(created.payload).sections).toEqual([])
+    expect(json<ReportDTO>(created.payload).templateSnapshot).toBeNull()
+  })
+})
+
+describe('提交截止与迟交', () => {
+  it('默认按规则计算：summary.deadline 为本周周一 00:00 + (weekday-1) 天 + time', async () => {
+    const res = await call({ method: 'GET', url: '/api/reports/summary', token: alice.token })
+    expect(res.statusCode).toBe(200)
+    const summary = json<ReportSummaryDTO>(res.payload)
+    expect(summary.deadline.week).toBe(WEEK)
+    expect(summary.deadline.source).toBe('RULE')
+    expect(summary.deadline.weekday).toBe(7)
+    expect(summary.deadline.time).toBe('18:00')
+    expect(summary.deadline.deadline).toBe(
+      computeDeadline(weekRange(new Date()).start, 7, '18:00').toISOString()
+    )
+  })
+
+  it('过期提交仍返回 200 且 late=true；未过期提交 late=false', async () => {
+    const past = new Date(Date.now() - 60 * 60 * 1000)
+    await overrideDeadline(WEEK, past, '提前截止')
+
+    const created = await call({ method: 'POST', url: '/api/reports', token: alice.token, body: { week: WEEK } })
+    const id = json<ReportDTO>(created.payload).id
+    await call({ method: 'PATCH', url: '/api/reports/' + id, token: alice.token, body: { contentHtml: '<p>补交内容</p>' } })
+
+    const draftSummary = json<ReportSummaryDTO>((await call({ method: 'GET', url: '/api/reports/summary', token: alice.token })).payload)
+    expect(draftSummary.isOverdue).toBe(true)
+    expect(draftSummary.deadline.source).toBe('OVERRIDE')
+    expect(draftSummary.deadline.overrideReason).toBe('提前截止')
+    expect(draftSummary.deadline.deadline).toBe(past.toISOString())
+
+    const late = await call({ method: 'POST', url: '/api/reports/' + id + '/submit', token: alice.token })
+    expect(late.statusCode).toBe(200)
+    const lateDto = json<ReportDTO>(late.payload)
+    expect(lateDto.status).toBe('SUBMITTED')
+    expect(lateDto.late).toBe(true)
+
+    const afterSubmit = json<ReportSummaryDTO>((await call({ method: 'GET', url: '/api/reports/summary', token: alice.token })).payload)
+    expect(afterSubmit.isOverdue).toBe(false)
+  })
+
+  it('截止时间未到的提交 late=false（走管理员 PUT 覆盖接口）', async () => {
+    const future = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    const put = await call({
+      method: 'PUT',
+      url: '/api/settings/report-deadline/overrides/' + WEEK,
+      token: admin.token,
+      body: { deadline: future.toISOString(), reason: '本周顺延' }
+    })
+    expect(put.statusCode).toBe(200)
+
+    const created = await call({ method: 'POST', url: '/api/reports', token: alice.token, body: { week: WEEK } })
+    const id = json<ReportDTO>(created.payload).id
+    await call({ method: 'PATCH', url: '/api/reports/' + id, token: alice.token, body: { contentHtml: '<p>按时交</p>' } })
+
+    const submitted = await call({ method: 'POST', url: '/api/reports/' + id + '/submit', token: alice.token })
+    expect(submitted.statusCode).toBe(200)
+    expect(json<ReportDTO>(submitted.payload).late).toBe(false)
+
+    const summary = json<ReportSummaryDTO>((await call({ method: 'GET', url: '/api/reports/summary', token: alice.token })).payload)
+    expect(summary.isOverdue).toBe(false)
+    expect(summary.deadline.overrideReason).toBe('本周顺延')
+  })
+
+  it('修改全局规则后 summary.deadline 跟随规则变化', async () => {
+    const patched = await call({
+      method: 'PATCH',
+      url: '/api/settings/report-deadline',
+      token: admin.token,
+      body: { weekday: 3, time: '09:15' }
+    })
+    expect(patched.statusCode).toBe(200)
+
+    const summary = json<ReportSummaryDTO>((await call({ method: 'GET', url: '/api/reports/summary', token: alice.token })).payload)
+    expect(summary.deadline.source).toBe('RULE')
+    expect(summary.deadline.weekday).toBe(3)
+    expect(summary.deadline.time).toBe('09:15')
+    expect(summary.deadline.deadline).toBe(computeDeadline(weekRange(new Date()).start, 3, '09:15').toISOString())
+  })
+})
+
+
+describe('模版小节（旧草稿）', () => {
+  it('先生成草稿、后启用模版：提交时按缺节拒绝并提示模版首节', async () => {
+    const created = await call({ method: 'POST', url: '/api/reports', token: alice.token, body: { week: WEEK } })
+    const id = json<ReportDTO>(created.payload).id
+    expect(json<ReportDTO>(created.payload).sections).toEqual([])
+    await call({ method: 'PATCH', url: '/api/reports/' + id, token: alice.token, body: { contentHtml: '<p>旧版自由正文</p>' } })
+
+    await createActiveTemplate()
+    const submitted = await call({ method: 'POST', url: '/api/reports/' + id + '/submit', token: alice.token })
+    expect(submitted.statusCode).toBe(422)
+    expect(errorMessage(submitted.payload)).toBe('《本周进展》未填写')
+
+    const patched = await call({ method: 'PATCH', url: '/api/reports/' + id, token: alice.token })
+    expect(patched.statusCode).toBe(200)
+    const dto = json<ReportDTO>(patched.payload)
+    expect(dto.sections.map((section) => section.title)).toEqual(['本周进展', '下周计划'])
+  })
+})
+

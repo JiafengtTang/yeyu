@@ -3,16 +3,9 @@ import type { AuthUser } from '../../plugins/auth'
 import { isAdmin } from '../../plugins/auth'
 import { prisma } from '../../lib/prisma'
 import { weekOf } from '../../lib/time'
+import { resolveDeadline } from '../settings/deadline.js'
 import { toReportDTO, toUserDTO } from './dto.js'
 import { REPORT_INCLUDE } from './query.js'
-
-/** 周日 18:00 为本周提交截止时刻 */
-export function overdueDeadline(periodStart: Date): Date {
-  const deadline = new Date(periodStart)
-  deadline.setDate(deadline.getDate() + 6)
-  deadline.setHours(18, 0, 0, 0)
-  return deadline
-}
 
 export function isFinishedStatus(status: string): boolean {
   return status === 'SUBMITTED' || status === 'APPROVED'
@@ -20,13 +13,16 @@ export function isFinishedStatus(status: string): boolean {
 
 export async function buildSummary(user: AuthUser, now: Date = new Date()): Promise<ReportSummaryDTO> {
   const { week, periodStart } = weekOf(now)
+  // 截止时间来自全局规则/单周覆盖，不再硬编码周日 18:00
+  const deadline = await resolveDeadline(week)
+
   const mine = await prisma.report.findUnique({
     where: { authorId_periodStart: { authorId: user.id, periodStart } },
     include: REPORT_INCLUDE
   })
 
   const finished = mine !== null && isFinishedStatus(mine.status)
-  const isOverdue = now.getTime() > overdueDeadline(periodStart).getTime() && !finished
+  const isOverdue = now.getTime() > new Date(deadline.deadline).getTime() && !finished
 
   let admin: ReportSummaryDTO['admin'] = null
   if (isAdmin(user)) {
@@ -45,5 +41,5 @@ export async function buildSummary(user: AuthUser, now: Date = new Date()): Prom
     }
   }
 
-  return { week, mine: mine ? toReportDTO(mine) : null, isOverdue, admin }
+  return { week, mine: mine ? toReportDTO(mine) : null, isOverdue, deadline, admin }
 }

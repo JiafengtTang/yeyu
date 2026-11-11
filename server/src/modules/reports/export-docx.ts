@@ -190,18 +190,54 @@ export async function buildReportDocx(report: ReportDTO): Promise<Buffer> {
   children.push(metaParagraph('周次：' + report.week + '（' + day(report.periodStart) + ' ~ ' + day(report.periodEnd) + '）'))
   children.push(metaParagraph('状态：' + (REPORT_STATUS_LABEL[report.status] ?? report.status)))
   if (report.submittedAt) children.push(metaParagraph('提交时间：' + moment(report.submittedAt)))
+  if (report.late) children.push(metaParagraph('迟交：是（超过本周截止时间）'))
   if (report.reviewedAt) {
     children.push(metaParagraph('审阅：' + (report.reviewerName ?? '-') + ' · ' + moment(report.reviewedAt)))
   }
   if (report.reviewComment) children.push(metaParagraph('审核意见：' + report.reviewComment))
   children.push(new Paragraph({ text: '', spacing: { after: 120 } }))
 
-  if (blocks.length === 0) {
-    children.push(placeholderParagraph('（正文为空）'))
-  }
-  for (const block of blocks) {
-    if (block.kind === 'text') children.push(textParagraph(block))
-    else children.push(await imageParagraph(block.mediaId))
+  // 模版周报按小节渲染；sections 为空时仍按旧版自由正文渲染
+  if (report.sections.length > 0) {
+    for (const section of report.sections) {
+      children.push(
+        new Paragraph({
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 240, after: 120 },
+          children: [new TextRun({ text: section.title })]
+        })
+      )
+      const sectionBlocks = htmlToBlocks(section.contentHtml)
+      if (sectionBlocks.length === 0) {
+        children.push(placeholderParagraph('（本节未填写）'))
+        continue
+      }
+      for (const block of sectionBlocks) {
+        if (block.kind === 'text') children.push(textParagraph(block))
+        else children.push(await imageParagraph(block.mediaId))
+      }
+    }
+    if (blocks.length > 0) {
+      children.push(
+        new Paragraph({
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 240, after: 120 },
+          children: [new TextRun({ text: '补充正文' })]
+        })
+      )
+      for (const block of blocks) {
+        if (block.kind === 'text') children.push(textParagraph(block))
+        else children.push(await imageParagraph(block.mediaId))
+      }
+    }
+  } else {
+    if (blocks.length === 0) {
+      children.push(placeholderParagraph('（正文为空）'))
+    }
+    for (const block of blocks) {
+      if (block.kind === 'text') children.push(textParagraph(block))
+      else children.push(await imageParagraph(block.mediaId))
+    }
   }
 
   if (report.comments.length > 0) {
