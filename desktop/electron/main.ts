@@ -52,7 +52,8 @@ function createWindow(): void {
 
   if (devServerUrl) {
     void mainWindow.loadURL(devServerUrl)
-    mainWindow.webContents.openDevTools({ mode: 'detach' })
+    // 默认不弹 DevTools（它会在终端刷 Autofill.enable failed 这类噪声）；需要时 OPEN_DEVTOOLS=1
+    if (process.env.OPEN_DEVTOOLS === '1') mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
     void mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'))
   }

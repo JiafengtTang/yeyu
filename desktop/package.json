@@ -5,7 +5,7 @@
   "description": "课题组资产台账与图文周报",
   "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "tsc -p electron/tsconfig.json && concurrently -k -n vite,electron -c cyan,yellow \"vite --port 5173\" \"wait-on tcp:5173 && electron . --dev-server=http://localhost:5173\"",
+    "dev": "node scripts/dev.mjs",
     "build:renderer": "vite build",
     "build": "tsc -p electron/tsconfig.json && vite build",
     "build:mac": "pnpm run build && electron-builder --mac --config electron-builder.yml",

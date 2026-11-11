@@ -41,23 +41,29 @@ lab-asset-hub/
 
 前置：Node.js 20+（实测 24）、pnpm 11。
 
+**一条命令**（自动装依赖、清端口、建表、seed、起后端+前端+桌面窗口）：
+
 ```bash
-# 1) 安装依赖（Electron 二进制走 npmmirror；仓库 .npmrc / pnpm-workspace.yaml 已关掉 strictDepBuilds）
-export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
-pnpm install
-
-# 2) 生成服务端环境变量
-cp server/.env.example server/.env      # 改 JWT_SECRET
-
-# 3) 建表 + 首个管理员
-pnpm db:push
-pnpm db:seed                            # 13800000000 / Admin@123456（可用 SEED_ADMIN_PASSWORD 覆盖）
-
-# 4) 同时启动服务端(4000)与桌面端(Vite 5173 + Electron)
-pnpm dev
+pnpm start            # 等价于 bash scripts/start-local.sh
 ```
 
-也可以用一键脚本（含环境自检、建表、seed）：`scripts/dev.sh`；只看环境不看数据库：`scripts/dev.sh --check`。
+登录：`13800000000` / `Admin@123456`。关窗口或 `Ctrl+C` 结束全部进程。
+
+手工分步（理解每一层用）：
+
+```bash
+export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/   # GitHub 不可达时用镜像
+pnpm install
+cp server/.env.example server/.env      # 改 JWT_SECRET
+pnpm db:push                            # 建表
+pnpm db:seed                            # 首个管理员（SEED_ADMIN_PASSWORD 可覆盖）
+pnpm dev                                # 服务端 4000 + Vite 5173 + Electron 窗口
+```
+
+> 开发启动器 `desktop/scripts/dev.mjs` 会主动剥掉继承来的 `ELECTRON_RUN_AS_NODE`
+> （VS Code / DSH 等 Electron 应用的集成终端会带这个变量，它会让 electron 退化成纯 Node、
+> 窗口永远不出现），并且用双栈探测等 Vite 就绪——Vite 默认只监听 `::1`。
+> 需要 DevTools 时加 `OPEN_DEVTOOLS=1`；需要给 Electron 传额外参数用 `EXTRA_ELECTRON_ARGS="..."`。
 
 其他脚本：
 

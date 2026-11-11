@@ -12,7 +12,8 @@
     "test": "pnpm --filter @lab/server test",
     "typecheck": "pnpm -r typecheck",
     "build:mac": "pnpm --filter @lab/desktop build:mac",
-    "build:win": "pnpm --filter @lab/desktop build:win"
+    "build:win": "pnpm --filter @lab/desktop build:win",
+    "start": "bash scripts/start-local.sh"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"
