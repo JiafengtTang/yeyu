@@ -1,12 +1,17 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ButtonHTMLAttributes, type CSSProperties, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 
 export function Button({ variant = 'default', loading = false, children, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'default' | 'primary' | 'danger' | 'ghost'; loading?: boolean }) {
   const cls = ['btn', variant !== 'default' ? 'btn-' + variant : '', rest.className ?? ''].filter(Boolean).join(' ')
   return (
     <button {...rest} className={cls} disabled={rest.disabled || loading}>
+      {loading ? <span className="btn-spinner" aria-hidden="true" /> : null}
       {loading ? '处理中…' : children}
     </button>
   )
+}
+
+export function Skeleton({ width = '100%', height = 14, style }: { width?: number | string; height?: number; style?: CSSProperties }) {
+  return <span className="skeleton" style={{ display: 'inline-block', width, height, ...style }} />
 }
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
@@ -123,8 +128,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="toast-stack">
         {items.map((item) => (
-          <div key={item.id} className={'toast toast-' + item.tone}>
-            {item.message}
+          <div key={item.id} className={'toast toast-' + item.tone} role="status">
+            <span className="toast-icon" aria-hidden="true">
+              {item.tone === 'success' ? '✓' : item.tone === 'error' ? '!' : 'i'}
+            </span>
+            <span>{item.message}</span>
           </div>
         ))}
       </div>

@@ -41,7 +41,8 @@ function createWindow(): void {
     minWidth: 1080,
     minHeight: 700,
     title: '课题组资产台账',
-    backgroundColor: '#f5f6f8',
+    backgroundColor: '#f4f6f9',
+    icon: app.isPackaged ? undefined : path.join(__dirname, '..', 'build', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -101,6 +102,14 @@ ipcMain.handle('report:printPdf', async (_event, payload: { html: string; filena
 })
 
 app.whenReady().then(() => {
+  // 开发态 Dock 会显示 Electron 默认图标，这里换成自己的
+  if (process.platform === 'darwin' && !app.isPackaged && app.dock) {
+    try {
+      app.dock.setIcon(path.join(__dirname, '..', 'build', 'icon.png'))
+    } catch {
+      // 图标文件缺失不影响启动
+    }
+  }
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

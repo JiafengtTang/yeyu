@@ -34,7 +34,7 @@ trap cleanup INT TERM
 for port in "$API_PORT" "$WEB_PORT"; do
   pids="$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | tr '\n' ' ')"
   if [ -n "${pids// /}" ]; then
-    cyan "端口 $port 被占用（PID: $pids），先释放"
+    cyan "端口 ${port} 被占用（PID: ${pids}），先释放"
     kill $pids 2>/dev/null; sleep 1; kill -9 $pids 2>/dev/null
   fi
 done

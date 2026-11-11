@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react'
+import logoUrl from './assets/logo.png'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/AuthProvider'
 import { Spinner } from './ui'
@@ -10,6 +11,7 @@ import ReportsPage from './pages/ReportsPage'
 import ReportEditorPage from './pages/ReportEditorPage'
 import ReviewPage from './pages/ReviewPage'
 import AdminUsersPage from './pages/AdminUsersPage'
+import TemplatesPage from './pages/admin/TemplatesPage'
 
 interface NavItem {
   to: string
@@ -23,7 +25,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/assets', label: '资产台账' },
   { to: '/reports', label: '我的周报' },
   { to: '/reviews', label: '周报审阅', admin: true },
-  { to: '/admin/users', label: '用户与权限', admin: true }
+  { to: '/admin/users', label: '用户与权限', admin: true },
+  { to: '/admin/templates', label: '模版与截止', admin: true }
 ]
 
 const TITLES: Record<string, string> = {
@@ -31,7 +34,8 @@ const TITLES: Record<string, string> = {
   '/assets': '资产台账',
   '/reports': '我的周报',
   '/reviews': '周报审阅',
-  '/admin/users': '用户与权限'
+  '/admin/users': '用户与权限',
+  '/admin/templates': '模版与截止'
 }
 
 function Guard({ adminOnly = false, children }: { adminOnly?: boolean; children: ReactNode }) {
@@ -51,7 +55,7 @@ function Shell({ children }: { children: ReactNode }) {
     <div className="app">
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark">资</span>
+          <img className="brand-logo" src={logoUrl} alt="课题组资产台账" />
           <span className="brand-text">
             课题组资产台账
             <small>固定资产 · 图文周报</small>
@@ -103,6 +107,7 @@ export default function App() {
       <Route path="/reports/:id" element={<AuthedLayout><ReportEditorPage /></AuthedLayout>} />
       <Route path="/reviews" element={<AuthedLayout adminOnly><ReviewPage /></AuthedLayout>} />
       <Route path="/admin/users" element={<AuthedLayout adminOnly><AdminUsersPage /></AuthedLayout>} />
+      <Route path="/admin/templates" element={<AuthedLayout adminOnly><TemplatesPage /></AuthedLayout>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import logoUrl from '../assets/logo.png'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { apiErrorMessage, getBaseUrl, setServerUrl } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
@@ -57,10 +58,14 @@ export default function LoginPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <div>
-          <h1>课题组资产台账</h1>
-          <p className="muted">使用手机号登录，新账号需管理员审批后可用。</p>
+        <div className="auth-brand">
+          <img className="auth-logo" src={logoUrl} alt="" />
+          <div>
+            <h1>课题组资产台账</h1>
+            <p className="muted">固定资产台账 · 图文周报</p>
+          </div>
         </div>
+        <p className="muted auth-hint">使用手机号登录，新账号需管理员审批后可用。</p>
         <form className="form" onSubmit={handleSubmit}>
           <Field label="手机号" required>
             <Input
