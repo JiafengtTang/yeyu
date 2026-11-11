@@ -1,0 +1,71 @@
+# electron-builder 配置：Windows / macOS 免签名产物
+#
+# 构建（在 desktop/ 目录）：
+#   pnpm run build:mac          # 当前机器架构 → release/lab-asset-hub-<ver>-mac-<arch>.dmg
+#   pnpm run build:win          # NSIS 安装包 → release/lab-asset-hub-<ver>-win-x64-setup.exe
+#   只出可执行目录（不压 dmg/exe，最快）：
+#   npx --no-install electron-builder --dir --mac
+#
+# 说明：
+# - 本仓库无 Apple Developer ID 与 Windows 代码签名证书，故 identity: null（完全免签名）。
+# - electron 二进制与 electron-builder 的 dmg/nsis 工具走 npmmirror，GitHub 直连不可用；
+#   也可用环境变量 ELECTRON_MIRROR / ELECTRON_BUILDER_BINARIES_MIRROR 覆盖。
+# - 主进程只依赖 electron 与 Node 内置模块，渲染进程已由 Vite 打成静态文件，
+#   因此产物里不需要 node_modules（files 显式排除，避免把 workspace 依赖卷进去）。
+appId: com.lab.assethub
+productName: LabAssetHub
+copyright: Copyright © 2026 课题组
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+  - '!node_modules/**/*'
+
+asar: true
+npmRebuild: false
+buildDependenciesFromSource: false
+
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/
+
+mac:
+  category: public.app-category.productivity
+  # 免签名：不签名、不做公证，用户首次打开需「右键 → 打开」或执行 xattr 去隔离
+  identity: null
+  hardenedRuntime: false
+  gatekeeperAssess: false
+  notarize: false
+  target:
+    - target: dmg
+  artifactName: lab-asset-hub-${version}-mac-${arch}.${ext}
+
+dmg:
+  title: 课题组资产台账 ${version}
+  contents:
+    - x: 140
+      y: 200
+    - x: 400
+      y: 200
+      type: link
+      path: /Applications
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 课题组资产台账
+  language: '2052'
+  artifactName: lab-asset-hub-${version}-win-${arch}-setup.${ext}

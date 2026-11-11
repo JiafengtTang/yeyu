@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  phone        String   @unique
+  passwordHash String
+  name         String
+  email        String?
+  role         String   @default("MEMBER")
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ownedAssets     Asset[]         @relation("AssetOwner")
+  createdAssets   Asset[]         @relation("AssetCreator")
+  borrows         BorrowRecord[]  @relation("Borrower")
+  authoredReports Report[]        @relation("ReportAuthor")
+  reviewedReports Report[]        @relation("ReportReviewer")
+  comments        ReportComment[]
+  media           Media[]
+  audits          AuditLog[]
+  inventoryChecks InventoryItem[] @relation("Checker")
+  inventoryBatches InventoryBatch[]
+}
+
+model Media {
+  id         String   @id @default(cuid())
+  filename   String
+  mime       String
+  size       Int
+  path       String
+  usage      String   @default("ASSET")
+  uploaderId String?
+  uploader   User?    @relation(fields: [uploaderId], references: [id])
+  createdAt  DateTime @default(now())
+
+  attachments AssetAttachment[]
+}
+
+model Asset {
+  id           String    @id @default(cuid())
+  code         String    @unique
+  name         String
+  category     String
+  model        String?
+  serialNo     String?
+  quantity     Int       @default(1)
+  unitPrice    Float?
+  amount       Float?
+  purchaseDate DateTime?
+  supplier     String?
+  location     String?
+  ownerId      String?
+  owner        User?     @relation("AssetOwner", fields: [ownerId], references: [id])
+  status       String    @default("IN_USE")
+  remark       String?
+  createdById  String?
+  createdBy    User?     @relation("AssetCreator", fields: [createdById], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  attachments    AssetAttachment[]
+  borrows        BorrowRecord[]
+  inventoryItems InventoryItem[]
+
+  @@index([category])
+  @@index([status])
+  @@index([ownerId])
+}
+
+model AssetAttachment {
+  id        String   @id @default(cuid())
+  assetId   String
+  asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  kind      String   @default("PHOTO")
+  createdAt DateTime @default(now())
+
+  @@index([assetId])
+}
+
+model BorrowRecord {
+  id         String    @id @default(cuid())
+  assetId    String
+  asset      Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  borrowerId String
+  borrower   User      @relation("Borrower", fields: [borrowerId], references: [id])
+  borrowedAt DateTime  @default(now())
+  dueAt      DateTime?
+  returnedAt DateTime?
+  note       String?
+  createdAt  DateTime  @default(now())
+
+  @@index([assetId])
+  @@index([borrowerId])
+}
+
+model InventoryBatch {
+  id          String    @id @default(cuid())
+  name        String
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  closedAt    DateTime?
+
+  items InventoryItem[]
+}
+
+model InventoryItem {
+  id               String    @id @default(cuid())
+  batchId          String
+  batch            InventoryBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  assetId          String
+  asset            Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  expectedStatus   String
+  expectedLocation String?
+  actualStatus     String?
+  actualLocation   String?
+  result           String    @default("PENDING")
+  checkedById      String?
+  checkedBy        User?     @relation("Checker", fields: [checkedById], references: [id])
+  checkedAt        DateTime?
+  note             String?
+
+  @@index([batchId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  actorName  String?
+  action     String
+  entityType String
+  entityId   String?
+  beforeJson String?
+  afterJson  String?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model Report {
+  id            String    @id @default(cuid())
+  authorId      String
+  author        User      @relation("ReportAuthor", fields: [authorId], references: [id])
+  periodStart   DateTime
+  periodEnd     DateTime
+  week          String
+  title         String    @default("")
+  contentHtml   String    @default("")
+  status        String    @default("DRAFT")
+  submittedAt   DateTime?
+  reviewedById  String?
+  reviewedBy    User?     @relation("ReportReviewer", fields: [reviewedById], references: [id])
+  reviewedAt    DateTime?
+  reviewComment String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  comments ReportComment[]
+
+  @@unique([authorId, periodStart])
+  @@index([status])
+  @@index([week])
+}
+
+model ReportComment {
+  id        String   @id @default(cuid())
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([reportId])
+}

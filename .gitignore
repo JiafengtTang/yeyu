@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-electron/
+release/
+*.log
+.env
+server/prisma/*.db
+server/prisma/*.db-journal
+uploads/
+.DS_Store

@@ -1,0 +1,20 @@
+# 与 deploy/Dockerfile 同级的 Dockerfile.dockerignore 是 BuildKit 的约定：
+# 执行 docker build -f deploy/Dockerfile . 时自动生效（无需 -v 挂载根目录的 .dockerignore）。
+**/node_modules
+**/dist
+**/dist-electron
+desktop/release
+desktop/build
+server/prisma/*.db
+server/prisma/*.db-journal
+server/uploads
+uploads
+backups
+.git
+.gitignore
+**/.DS_Store
+docs
+scripts
+README.md
+deploy/.env
+deploy/docker-compose.yml

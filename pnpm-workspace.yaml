@@ -1,0 +1,22 @@
+packages:
+  - shared
+  - server
+  - desktop
+
+# electron 二进制已用镜像单独装好；其余依赖不做 postinstall 也不需要
+# strictDepBuilds 在 pnpm 11 默认开启，会把「未批准的构建脚本」升级为硬错误，这里显式关闭
+strictDepBuilds: false
+
+ignoredBuiltDependencies:
+  - electron
+  - prisma
+  - "@prisma/client"
+  - "@prisma/engines"
+  - esbuild
+
+allowBuilds:
+  '@prisma/client': set this to true or false
+  '@prisma/engines': set this to true or false
+  electron: set this to true or false
+  esbuild: set this to true or false
+  prisma: set this to true or false

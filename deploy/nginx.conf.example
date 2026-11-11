@@ -1,0 +1,46 @@
+# nginx 反向代理示例（可选）：把 4000 端口的服务放到 80/443 上，供内网访问
+# 用法：复制到 /etc/nginx/conf.d/lab-asset-hub.conf，改 server_name 与证书路径后 nginx -t && systemctl reload nginx
+
+upstream lab_asset_hub {
+    server 127.0.0.1:4000;
+    keepalive 32;
+}
+
+server {
+    listen 80;
+    server_name lab-asset.example.internal;
+
+    # 仓库自带 20MB 上传上限，这里留出 multipart 开销
+    client_max_body_size 25m;
+
+    # 附件与图片走鉴权接口，缓存交给客户端即可
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json;
+
+    location / {
+        proxy_pass http://lab_asset_hub;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+}
+
+# HTTPS（内网有自签或企业 CA 时启用；浏览器/客户端需信任该证书）
+# server {
+#     listen 443 ssl http2;
+#     server_name lab-asset.example.internal;
+#     ssl_certificate     /etc/nginx/ssl/lab-asset.crt;
+#     ssl_certificate_key /etc/nginx/ssl/lab-asset.key;
+#     client_max_body_size 25m;
+#     location / {
+#         proxy_pass http://lab_asset_hub;
+#         proxy_http_version 1.1;
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#     }
+# }
