@@ -490,8 +490,8 @@ table.table td.num { text-align: right; font-variant-numeric: tabular-nums; }
 }
 .rich-toolbar button:hover { background: #eef2f7; color: var(--ink); }
 .rich-toolbar button.active { background: var(--brand-soft); color: var(--brand-600); font-weight: 600; }
-.rich-body { min-height: 320px; padding: 16px 18px; outline: none; }
-.rich-body .ProseMirror { min-height: 300px; outline: none; }
+.rich-body { min-height: 220px; padding: 16px 18px; outline: none; }
+.rich-body .ProseMirror { min-height: 200px; outline: none; }
 .rich-body .ProseMirror > * + * { margin-top: 0.7em; }
 .rich-body h1, .rich-body h2, .rich-body h3 { letter-spacing: -0.01em; line-height: 1.35; }
 .rich-body h1 { font-size: 20px; }
