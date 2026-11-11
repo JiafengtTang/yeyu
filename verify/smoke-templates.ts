@@ -63,7 +63,7 @@ async function main() {
   await app.inject({ method: 'DELETE', url: '/api/settings/report-deadline/overrides/' + week, headers: ah })
 
   // 2) 上传 markdown 模版
-  const md = '# 本周进展\n在这里写完成的工作\n\n## 下周计划\n列出计划\n\n## 问题与需求\n需要协调的事项\n'
+  const md = '# 课题组周报\n\n## 本周进展\n在这里写完成的工作\n\n## 下周计划\n列出计划\n\n## 问题与需求\n需要协调的事项\n'
   const mp = multipart({ name: '课题组周报模版', activate: '1' }, { name: 'file', filename: 'template.md', contentType: 'text/markdown', data: Buffer.from(md, 'utf8') })
   const upload = await app.inject({ method: 'POST', url: '/api/templates', headers: { ...ah, 'content-type': mp.contentType }, payload: mp.body })
   const tpl = upload.json() as { id?: string; sections?: Array<{ key: string; title: string; hint: string }>; isActive?: boolean }

@@ -14,10 +14,15 @@ export const MAX_TITLE_LENGTH = 120
 export const MAX_HINT_LENGTH = 200
 
 export const NO_SECTION_MESSAGE =
-  '未在文件中识别到小节标题，请使用 Word 的标题 1/2/3 样式或 Markdown 的 ## 标题'
+  '未在文件中识别到小节标题：请把栏目名设成 Word 的「标题 1/2/3」样式，或用 Markdown 的 ## 标题'
 
-const HEADING_STYLE_RE = /^(Heading|标题)\s*[1-3]$/
-const MARKDOWN_HEADING_RE = /^#{1,3}\s+(.+)$/
+/** 段落块：level 为标题级别（1 起），null 表示正文 */
+export interface ParagraphBlock {
+  text: string
+  level: number | null
+}
+
+const MARKDOWN_HEADING_RE = /^(#{1,3})\s+(.+)$/
 const MARKDOWN_LIST_PREFIX_RE = /^(?:[-*+]\s+|\d+[.)]\s+)/
 const MARKDOWN_NOISE_RE = /^(?:```|---|===|\|)/
 
@@ -26,6 +31,9 @@ const PARAGRAPH_STYLE_RE = /<(?:\w+:)?pStyle\b[^>]*>/
 const PARAGRAPH_OUTLINE_RE = /<(?:\w+:)?outlineLvl\b[^>]*>/
 const VAL_RE = /\b(?:\w+:)?val\s*=\s*"([^"]*)"/i
 const TEXT_RE = /<(?:\w+:)?t(?:\s[^>]*)?>([\s\S]*?)<\/(?:\w+:)?t>/g
+const STYLE_ENTRY_RE = /<(?:\w+:)?style\b([^>]*)>([\s\S]*?)<\/(?:\w+:)?style>/g
+const STYLE_ID_RE = /(?:\w+:)?styleId\s*=\s*"([^"]+)"/i
+const STYLE_NAME_RE = /<(?:\w+:)?name\b[^>]*?(?:\w+:)?val\s*=\s*"([^"]*)"/i
 
 const NAMED_ENTITIES: Record<string, string> = {
   amp: '&',
@@ -68,74 +76,127 @@ function paragraphText(xml: string): string {
   return collapse(text)
 }
 
-function isHeadingParagraph(xml: string): boolean {
+/** 解析 word/styles.xml：styleId → 样式名（如 "1" → "heading 1"） */
+export function parseStyleNames(stylesXml: string): Map<string, string> {
+  const names = new Map<string, string>()
+  STYLE_ENTRY_RE.lastIndex = 0
+  let match: RegExpExecArray | null
+  while ((match = STYLE_ENTRY_RE.exec(stylesXml)) !== null) {
+    const id = STYLE_ID_RE.exec(match[1] ?? '')?.[1]
+    if (!id) continue
+    const name = STYLE_NAME_RE.exec(match[2] ?? '')?.[1]
+    if (name) names.set(id, name)
+  }
+  return names
+}
+
+/**
+ * 样式名 / 样式 id → 标题级别（1 起），非标题返回 null。
+ * 中文版 Word 会把「标题 1/2/3」的 styleId 直接记成 "1"/"2"/"3"，所以既看 styles.xml 里的名字，也做数字兜底。
+ */
+export function headingLevelOfStyle(styleVal: string, styleNames?: Map<string, string>): number | null {
+  const id = styleVal.trim()
+  if (id.length === 0) return null
+  const candidates = [styleNames?.get(id) ?? '', id].map((value) => value.trim()).filter(Boolean)
+  for (const candidate of candidates) {
+    const match = /^(?:heading|标题)\s*([1-9])$/i.exec(candidate)
+    if (match) return Number(match[1])
+  }
+  if (!styleNames || styleNames.size === 0) {
+    if (/^[1-3]$/.test(id)) return Number(id)
+  }
+  return null
+}
+
+function paragraphHeadingLevel(xml: string, styleNames?: Map<string, string>): number | null {
+  let level: number | null = null
   const styleTag = PARAGRAPH_STYLE_RE.exec(xml)
   if (styleTag) {
-    const styleVal = VAL_RE.exec(styleTag[0])?.[1]?.trim() ?? ''
-    if (HEADING_STYLE_RE.test(styleVal)) return true
+    const styleVal = VAL_RE.exec(styleTag[0])?.[1] ?? ''
+    level = headingLevelOfStyle(styleVal, styleNames)
   }
   const outlineTag = PARAGRAPH_OUTLINE_RE.exec(xml)
   if (outlineTag) {
     const outlineVal = VAL_RE.exec(outlineTag[0])?.[1]?.trim() ?? ''
-    if (/^[0-9]+$/.test(outlineVal) && Number(outlineVal) <= 2) return true
+    if (/^[0-9]+$/.test(outlineVal)) {
+      const outlineLevel = Number(outlineVal) + 1
+      level = level === null ? outlineLevel : Math.min(level, outlineLevel)
+    }
   }
-  return false
+  return level
 }
 
-interface DraftSection {
-  title: string
-  hintParts: string[]
+/**
+ * 选定"小节层级"：取出现 ≥2 次的最浅级别。
+ * 这样「标题 1 只出现一次（文档标题）+ 标题 2 出现多次（真正的栏目）」时，会正确取标题 2。
+ */
+export function selectSectionLevel(blocks: ParagraphBlock[]): number {
+  const counts = new Map<number, number>()
+  for (const block of blocks) {
+    if (block.level === null) continue
+    counts.set(block.level, (counts.get(block.level) ?? 0) + 1)
+  }
+  if (counts.size === 0) return 0
+  const levels = [...counts.keys()].sort((a, b) => a - b)
+  return levels.find((level) => (counts.get(level) ?? 0) >= 2) ?? levels[0] ?? 0
 }
 
-function finishDraft(draft: DraftSection): { title: string; hint: string } {
-  return { title: draft.title, hint: clip(draft.hintParts.join(' '), MAX_HINT_LENGTH) }
-}
-
-function pushDraft(drafts: Array<{ title: string; hint: string }>, draft: DraftSection | null): void {
-  if (draft) drafts.push(finishDraft(draft))
-}
-
-/** docx：按 w:pStyle Heading/标题 1-3 或 w:outlineLvl<=2 识别小节，小节间正文拼成 hint */
-export function parseDocxDocumentXml(xml: string): Array<{ title: string; hint: string }> {
+/** 段落块 → 小节草稿；非小节层级的标题文本降级为该小节的提示 */
+export function blocksToDrafts(blocks: ParagraphBlock[]): Array<{ title: string; hint: string }> {
+  const sectionLevel = selectSectionLevel(blocks)
+  if (sectionLevel === 0) return []
   const drafts: Array<{ title: string; hint: string }> = []
-  let current: DraftSection | null = null
+  let current: { title: string; hintParts: string[] } | null = null
+  for (const block of blocks) {
+    if (block.text.length === 0) continue
+    if (block.level !== null && block.level === sectionLevel) {
+      if (current) drafts.push({ title: current.title, hint: clip(current.hintParts.join(' '), MAX_HINT_LENGTH) })
+      current = { title: block.text, hintParts: [] }
+      continue
+    }
+    // 纯数字/标点碎片（如 "(4"）对填写没有指导意义，别当提示
+    if (!/[\p{L}\p{N}]/u.test(block.text) || /^[\s\d()（）.、,，;；:\-]+$/.test(block.text)) continue
+    if (current) current.hintParts.push(block.text)
+  }
+  if (current) drafts.push({ title: current.title, hint: clip(current.hintParts.join(' '), MAX_HINT_LENGTH) })
+  return drafts
+}
 
+/** docx：逐段落算出文本与标题级别 */
+export function docxBlocks(xml: string, styleNames?: Map<string, string>): ParagraphBlock[] {
+  const blocks: ParagraphBlock[] = []
   PARAGRAPH_RE.lastIndex = 0
   let match: RegExpExecArray | null
   while ((match = PARAGRAPH_RE.exec(xml)) !== null) {
     const body = match[1] ?? ''
-    const text = paragraphText(body)
-    if (isHeadingParagraph(body)) {
-      if (text.length === 0) continue
-      pushDraft(drafts, current)
-      current = { title: text, hintParts: [] }
-      continue
-    }
-    if (text.length > 0 && current) current.hintParts.push(text)
+    blocks.push({ text: paragraphText(body), level: paragraphHeadingLevel(body, styleNames) })
   }
-  pushDraft(drafts, current)
-  return drafts
+  return blocks
 }
 
-/** markdown：^#{1,3}\s+ 为小节，标题之间的正文行为 hint */
-export function parseMarkdownText(source: string): Array<{ title: string; hint: string }> {
-  const drafts: Array<{ title: string; hint: string }> = []
-  let current: DraftSection | null = null
-
+/** markdown：^#{1,3} 为标题层级 */
+export function markdownBlocks(source: string): ParagraphBlock[] {
+  const blocks: ParagraphBlock[] = []
   for (const rawLine of source.replace(/^\uFEFF/, '').split(/\r?\n/)) {
     const line = rawLine.trim()
+    if (line.length === 0) continue
     const heading = MARKDOWN_HEADING_RE.exec(line)
     if (heading) {
-      pushDraft(drafts, current)
-      current = { title: collapse(heading[1] ?? ''), hintParts: [] }
+      blocks.push({ text: collapse(heading[2] ?? ''), level: (heading[1] ?? '#').length })
       continue
     }
-    if (!current || line.length === 0) continue
     if (MARKDOWN_NOISE_RE.test(line)) continue
-    current.hintParts.push(collapse(line.replace(MARKDOWN_LIST_PREFIX_RE, '')))
+    blocks.push({ text: collapse(line.replace(MARKDOWN_LIST_PREFIX_RE, '')), level: null })
   }
-  pushDraft(drafts, current)
-  return drafts
+  return blocks
+}
+
+export function parseDocxDocumentXml(xml: string, styleNames?: Map<string, string>): Array<{ title: string; hint: string }> {
+  return blocksToDrafts(docxBlocks(xml, styleNames))
+}
+
+export function parseMarkdownText(source: string): Array<{ title: string; hint: string }> {
+  return blocksToDrafts(markdownBlocks(source))
 }
 
 /** 统一校验并生成 key=s1..sn */
@@ -164,13 +225,16 @@ export async function parseTemplateBuffer(format: TemplateFormat, buffer: Buffer
   if (format === 'md') return finalizeSections(parseMarkdownText(buffer.toString('utf8')))
 
   let xml: string
+  let styleNames: Map<string, string> | undefined
   try {
     const zip = await JSZip.loadAsync(buffer)
     const entry = zip.file('word/document.xml')
     if (!entry) throw new Error('missing word/document.xml')
     xml = await entry.async('string')
+    const stylesEntry = zip.file('word/styles.xml')
+    if (stylesEntry) styleNames = parseStyleNames(await stylesEntry.async('string'))
   } catch {
     throw AppError.validation('DOCX 文件解析失败：缺少 word/document.xml，请确认上传的是有效的 .docx 文件')
   }
-  return finalizeSections(parseDocxDocumentXml(xml))
+  return finalizeSections(parseDocxDocumentXml(xml, styleNames))
 }

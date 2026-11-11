@@ -61,7 +61,7 @@ interface DocxParagraph {
 }
 
 /** 现场生成最简 docx（zip 里只放 word/document.xml），不依赖外部夹具文件 */
-async function buildDocx(paragraphs: DocxParagraph[], withDocumentXml = true): Promise<Buffer> {
+async function buildDocx(paragraphs: DocxParagraph[], withDocumentXml = true, stylesXml?: string): Promise<Buffer> {
   const zip = new JSZip()
   const body = paragraphs
     .map((paragraph) => {
@@ -82,6 +82,7 @@ async function buildDocx(paragraphs: DocxParagraph[], withDocumentXml = true): P
     '</w:body></w:document>'
   if (withDocumentXml) zip.file('word/document.xml', xml)
   else zip.file('word/other.xml', xml)
+  if (stylesXml) zip.file('word/styles.xml', stylesXml)
   return zip.generateAsync({ type: 'nodebuffer' })
 }
 
@@ -131,7 +132,8 @@ async function uploadTemplate(opts: {
   })
 }
 
-const MD_SOURCE = '# 本周进展\n在这里写完成的工作\n\n## 下周计划\n列出计划\n\n## 问题与需求\n需要协调的事项\n'
+const MD_SOURCE =
+  '# 课题组周报\n\n## 本周进展\n在这里写完成的工作\n\n## 下周计划\n列出计划\n\n## 问题与需求\n需要协调的事项\n'
 
 beforeAll(async () => {
   await rm(UPLOAD_ROOT, { recursive: true, force: true })
@@ -207,12 +209,13 @@ describe('模版上传与解析', () => {
 
   it('上传 .docx（Heading 1/2 + outlineLvl）解析小节、解 XML 实体、hint 截断 200 字', async () => {
     const docx = await buildDocx([
-      { text: '本周进展', style: 'Heading 1' },
+      { text: '课题组周报', style: 'Heading 1' },
+      { text: '本周进展', style: 'Heading 2' },
       { text: '完成示波器校准 &amp; 电源测试' },
       { text: '下周计划', style: '标题 2' },
       { text: '列出计划 &lt;待定&gt;' },
       { text: '张'.repeat(250) },
-      { text: '问题与需求', outline: 2 },
+      { text: '问题与需求', outline: 1 },
       { text: '需要协调的事项' }
     ])
     const res = await uploadTemplate({
@@ -229,6 +232,45 @@ describe('模版上传与解析', () => {
     expect(dto.sections[1]?.hint.length).toBe(200)
     expect(dto.sections[0]?.key).toBe('s1')
     expect(dto.sections[2]?.key).toBe('s3')
+  })
+
+  it('中文 Word 的样式 id（1/2 + styles.xml heading 1/2）按真实周报结构识别小节', async () => {
+    const styles =
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+      '<w:style w:type="paragraph" w:styleId="1"><w:name w:val="heading 1"/></w:style>' +
+      '<w:style w:type="paragraph" w:styleId="2"><w:name w:val="heading 2"/></w:style>' +
+      '<w:style w:type="paragraph" w:styleId="a0"><w:name w:val="List Paragraph"/></w:style>' +
+      '</w:styles>'
+    const docx = await buildDocx(
+      [
+        { text: '唐甲锋周报', style: '1' },
+        { text: '研究进展（科研的进展记录，数据的分析报告）', style: '2' },
+        { text: '科研进展' },
+        { text: '前两周其他事务', style: '2' },
+        { text: '(4' },
+        { text: '下阶段研究计划', style: '2' },
+        { text: '阅读论文；' }
+      ],
+      true,
+      styles
+    )
+    const res = await uploadTemplate({
+      token: admin.token,
+      fields: { activate: '1' },
+      file: { field: 'file', filename: 'real-weekly.docx', contentType: DOCX_MIME, data: docx }
+    })
+    expect(res.statusCode).toBe(201)
+    const dto = json<ReportTemplateDTO>(res.payload)
+    // 「标题 1」只出现一次 → 当文档标题跳过；「标题 2」出现三次 → 作为小节
+    expect(dto.sections.map((section) => section.title)).toEqual([
+      '研究进展（科研的进展记录，数据的分析报告）',
+      '前两周其他事务',
+      '下阶段研究计划'
+    ])
+    expect(dto.sections[0]?.hint).toBe('科研进展')
+    expect(dto.sections[1]?.hint).toBe('')
+    expect(dto.sections[2]?.hint).toBe('阅读论文；')
   })
 
   it('无小节标题的 md / docx 返回 422 且提示可操作', async () => {
