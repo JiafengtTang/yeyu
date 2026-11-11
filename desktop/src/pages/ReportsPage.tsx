@@ -149,7 +149,7 @@ export default function ReportsPage() {
                       {tab === 'all' ? <td>{item.authorName}</td> : null}
                       <td>{item.title || <span className="muted">未填写标题</span>}</td>
                       <td>
-                        <ReportStatusBadge status={item.status} />
+                        <ReportStatusBadge status={item.status} late={item.late === true} />
                       </td>
                       <td>{formatDateTime(item.updatedAt)}</td>
                       <td>

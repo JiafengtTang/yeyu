@@ -134,7 +134,7 @@ export default function ReviewPage() {
                     <td>{item.authorName}</td>
                     <td>{item.title || <span className="muted">未填写标题</span>}</td>
                     <td>
-                      <ReportStatusBadge status={item.status} />
+                      <ReportStatusBadge status={item.status} late={item.late === true} />
                     </td>
                     <td>{formatDateTime(item.submittedAt)}</td>
                     <td>
@@ -158,7 +158,7 @@ export default function ReviewPage() {
         <div className="split">
           <Card
             title={detail.title || '周报 ' + detail.week}
-            extra={<ReportStatusBadge status={detail.status} />}
+            extra={<ReportStatusBadge status={detail.status} late={detail.late === true} />}
           >
             <p className="muted">
               {detail.authorName} · {detail.week} · 提交于 {formatDateTime(detail.submittedAt)}

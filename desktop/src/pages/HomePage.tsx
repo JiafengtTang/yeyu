@@ -47,7 +47,7 @@ export default function HomePage() {
 
   const mine = summary?.mine ?? null
   const deadline = summary?.deadline ?? null
-  const overdue = summary?.isOverdue ?? (deadline ? isPastDeadline(deadline) && (summary?.mine?.status === 'DRAFT' || summary?.mine === null) : false)
+  const overdue = summary?.isOverdue ?? (deadline ? isPastDeadline(deadline) && (!summary?.mine || summary.mine.status === 'DRAFT' || summary.mine.status === 'REJECTED') : false)
   const missing = summary?.admin?.missing ?? []
   const pendingReview = summary?.admin?.pendingReview ?? 0
   const statusText = mine ? REPORT_STATUS_LABEL[mine.status] : '未写'
