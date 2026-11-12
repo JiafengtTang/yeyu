@@ -57,7 +57,9 @@ export const createUserSchema = registerSchema.extend({
 })
 export const updateUserSchema = z.object({
   role: z.enum(ROLES).optional(),
-  status: z.enum(USER_STATUSES).optional()
+  status: z.enum(USER_STATUSES).optional(),
+  /** null 表示移出小组 */
+  groupId: z.string().nullable().optional()
 })
 export const resetPasswordSchema = z.object({ password: passwordSchema })
 
@@ -146,8 +148,27 @@ export interface UserDTO {
   email: string | null
   role: Role
   status: UserStatus
+  groupId: string | null
+  groupName: string | null
   createdAt: string
 }
+
+export interface GroupDTO {
+  id: string
+  name: string
+  description: string | null
+  sortOrder: number
+  memberCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export const groupInputSchema = z.object({
+  name: z.string().trim().min(1, '小组名称不能为空').max(32, '名称最多 32 个字符'),
+  description: z.string().trim().max(100, '说明最多 100 个字符').optional(),
+  sortOrder: z.number().int().min(0).max(9999).optional()
+})
+export const groupUpdateSchema = groupInputSchema.partial()
 
 export interface MediaDTO {
   id: string

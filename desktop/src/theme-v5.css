@@ -72,6 +72,21 @@ table.table td:nth-child(2), table.table td:nth-child(9) { white-space: normal; 
 .card-body h4:first-child { margin-top: 0; }
 .form-grid .toolbar { margin: 0; }
 
+/* 小组管理 */
+.group-list { display: flex; flex-direction: column; gap: 6px; }
+.group-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 10px;
+  background: #fbfcfe; border: 1px solid var(--line);
+  font-size: 13px;
+}
+.group-name { font-weight: 600; color: var(--ink); }
+.group-count { font-size: 11.5px; color: var(--ink-faint); }
+.group-desc { color: var(--ink-soft); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.group-actions { margin-left: auto; display: flex; gap: 4px; flex: 0 0 auto; }
+.icon-action-danger-text { color: #c0392b; }
+.select-sm { height: 28px; font-size: 12px; padding: 0 6px; min-width: 96px; }
+
 /* ── 3. 小窗口（登录/注册）适配 ── */
 @media (max-width: 900px), (max-height: 760px) {
   .auth-page { padding: 12px; }

@@ -10,6 +10,8 @@ export interface UserRecord {
   email: string | null
   role: string
   status: string
+  groupId?: string | null
+  group?: { name: string } | null
   createdAt: Date
 }
 
@@ -21,6 +23,8 @@ export function toUserDTO(user: UserRecord): UserDTO {
     email: user.email,
     role: user.role as Role,
     status: user.status as UserStatus,
+    groupId: user.groupId ?? null,
+    groupName: user.group?.name ?? null,
     createdAt: user.createdAt.toISOString()
   }
 }

@@ -8,6 +8,7 @@ import { registerAssetsModule } from './modules/assets/index'
 import { registerReportsModule } from './modules/reports/index'
 import { registerTemplatesModule } from './modules/templates/index'
 import { registerSettingsModule } from './modules/settings/index'
+import { registerGroupsModule } from './modules/groups/index'
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -23,6 +24,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await registerMediaRoutes(app)
   await registerUsersModule(app)
+  await registerGroupsModule(app)
   await registerAssetsModule(app)
   await registerReportsModule(app)
   await registerTemplatesModule(app)

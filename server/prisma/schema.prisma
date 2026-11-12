@@ -29,6 +29,21 @@ model User {
   inventoryChecks InventoryItem[] @relation("Checker")
   inventoryBatches InventoryBatch[]
   templates       ReportTemplate[] @relation("TemplateAuthor")
+
+  groupId String?
+  group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+}
+
+/// 成员分组（按研究方向/职能划分，可为空）
+model Group {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users User[]
 }
 
 model Media {

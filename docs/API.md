@@ -167,3 +167,21 @@
 
 - 后端：`server/src/modules/<x>/*.test.ts` 用 vitest + `buildApp()` + `app.inject()`，覆盖权限拒绝路径（成员改他人资产 403、成员看他人周报 403、已提交周报 PATCH 409、最后一个管理员不可禁用 409）。
 - 前端：不强制单测，但必须在报告里给出可复现的手工验证步骤。
+
+## 2A. 成员分组（管理员维护）
+
+成员可归属到一个小组（可选），用于按研究方向/职能划分与筛选。
+
+| 方法 | 路径 | 权限 | 说明 |
+| --- | --- | --- | --- |
+| GET | `/api/groups` | 登录 | 返回 `{ items: GroupDTO[], total }`，按 `sortOrder, name` 升序，含 `memberCount` |
+| POST | `/api/groups` | 管理员 | `{ name, description?, sortOrder? }` → 201 GroupDTO；重名返回 409 |
+| PATCH | `/api/groups/:id` | 管理员 | 局部更新 `name / description / sortOrder`；重名 409，不存在 404 |
+| DELETE | `/api/groups/:id` | 管理员 | 删除小组，组内成员 `groupId` 置空（不删账号）；返回 `{ ok, movedToUngrouped }` |
+| PATCH | `/api/users/:id` | 管理员 | 新增 `groupId?: string \| null`（null = 移出小组）；小组不存在返回 404 |
+
+- `GET /api/users` 新增查询参数 `groupId`：传小组 id 只看该组，传 `NONE` 只看未分组。
+- `UserDTO` 新增 `groupId: string | null` 与 `groupName: string | null`。
+- 写操作（建组/改名/删组）落审计日志：`entityType = "GROUP"`，action 分别 CREATE / UPDATE / DELETE。
+- 约束：小组名 1–32 字且全局唯一；说明 ≤100 字。
+
