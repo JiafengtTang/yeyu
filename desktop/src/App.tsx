@@ -1,8 +1,9 @@
 import { type ReactNode } from 'react'
-import logoUrl from './assets/logo.png'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import logoUrl from './assets/logo.png'
 import { useAuth } from './auth/AuthProvider'
 import { Spinner } from './ui'
+import { Icon, type IconName } from './ui/icons'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import HomePage from './pages/HomePage'
@@ -16,17 +17,19 @@ import TemplatesPage from './pages/admin/TemplatesPage'
 interface NavItem {
   to: string
   label: string
+  icon: IconName
+  accent: string
   admin?: boolean
   end?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/', label: '工作台', end: true },
-  { to: '/assets', label: '资产台账' },
-  { to: '/reports', label: '我的周报' },
-  { to: '/reviews', label: '周报审阅', admin: true },
-  { to: '/admin/users', label: '用户与权限', admin: true },
-  { to: '/admin/templates', label: '模版与截止', admin: true }
+  { to: '/', label: '工作台', icon: 'dashboard', accent: 'blue', end: true },
+  { to: '/assets', label: '资产台账', icon: 'layers', accent: 'teal' },
+  { to: '/reports', label: '我的周报', icon: 'file', accent: 'violet' },
+  { to: '/reviews', label: '周报审阅', icon: 'checkSquare', accent: 'amber', admin: true },
+  { to: '/admin/users', label: '用户与权限', icon: 'users', accent: 'cyan', admin: true },
+  { to: '/admin/templates', label: '模版与截止', icon: 'sliders', accent: 'rose', admin: true }
 ]
 
 const TITLES: Record<string, string> = {
@@ -49,37 +52,56 @@ function Guard({ adminOnly = false, children }: { adminOnly?: boolean; children:
 function Shell({ children }: { children: ReactNode }) {
   const { user, isAdmin, logout } = useAuth()
   const location = useLocation()
-  const title = TITLES[location.pathname] ?? '课题组资产台账'
+  const title = location.pathname.startsWith('/reports/') ? '周报编辑' : TITLES[location.pathname] ?? '课题组资产台账'
+  const initial = (user?.name ?? '?').trim().slice(0, 1)
 
   return (
     <div className="app">
       <aside className="sidebar">
         <div className="brand">
-          <img className="brand-logo" src={logoUrl} alt="课题组资产台账" />
+          <img className="brand-logo" src={logoUrl} alt="" />
           <span className="brand-text">
             课题组资产台账
             <small>固定资产 · 图文周报</small>
           </span>
         </div>
+
         <nav className="nav">
           {NAV_ITEMS.filter((item) => !item.admin || isAdmin).map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-              {item.label}
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}
+            >
+              <span className={'nav-icon nav-icon-' + item.accent}>
+                <Icon name={item.icon} size={15} strokeWidth={1.9} />
+              </span>
+              <span className="nav-label">{item.label}</span>
             </NavLink>
           ))}
         </nav>
-        <div className="sidebar-foot">
-          {user?.name ?? ''} · {isAdmin ? '管理员' : '成员'}
+
+        <div className="sidebar-user">
+          <span className="avatar">{initial}</span>
+          <span className="sidebar-user-info">
+            <strong>{user?.name}</strong>
+            <small>{isAdmin ? '管理员' : '成员'}</small>
+          </span>
+          <button className="icon-btn sidebar-logout" onClick={logout} title="退出登录" aria-label="退出登录">
+            <Icon name="logout" size={16} />
+          </button>
         </div>
       </aside>
+
       <div className="main">
         <header className="topbar">
-          <span className="topbar-title">{title}</span>
+          <div className="topbar-left">
+            <span className="topbar-title">{title}</span>
+          </div>
           <div className="topbar-user">
-            <span>{user?.phone}</span>
-            <button className="btn btn-sm btn-ghost" onClick={logout}>
-              退出
-            </button>
+            <span className="chip">{user?.phone}</span>
+            {isAdmin ? <span className="chip chip-brand">管理员</span> : null}
           </div>
         </header>
         <main className="content">{children}</main>
