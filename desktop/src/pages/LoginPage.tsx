@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import logoUrl from '../assets/logo.png'
-import bgUrl from '../assets/login-bg.jpg'
 import { apiErrorMessage, getBaseUrl, setServerUrl } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
 import { Button, Field, Input, Spinner, useToast } from '../ui'
+import { LoginScene } from '../ui/LoginScene'
 
 export default function LoginPage() {
   const { user, loading, login } = useAuth()
@@ -59,8 +59,7 @@ export default function LoginPage() {
 
   return (
     <div className="auth-scene">
-      <img className="auth-scene-bg" src={bgUrl} alt="" aria-hidden="true" />
-      <div className="auth-scene-tint" aria-hidden="true" />
+      <LoginScene />
 
       <header className="auth-scene-brand">
         <img className="auth-brand-logo" src={logoUrl} alt="" />

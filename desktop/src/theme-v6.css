@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────
    v6：紧凑登录窗（微信/QQ 式小窗）
-   真实照片满铺 + 缓慢推镜 + 磨砂玻璃面板与输入框
+   真实照片 + 强化动效（推镜 / 星空闪烁 / 流星 / 雾气）
    ───────────────────────────────────────────── */
 .auth-scene {
   position: fixed;
@@ -9,38 +9,115 @@
   flex-direction: column;
   justify-content: flex-end;
   overflow: hidden;
-  background: #070d1a;
+  background: #060a14;
 }
 
-/* 背景照片：缓慢推镜，营造「海风在动」的呼吸感 */
-.auth-scene-bg {
+/* ── 场景层 ── */
+.login-scene { position: absolute; inset: 0; overflow: hidden; }
+
+.login-bg {
   position: absolute;
-  inset: -3%;
-  width: 106%;
-  height: 106%;
+  inset: -4%;
+  width: 108%;
+  height: 108%;
   object-fit: cover;
-  object-position: center 42%;
+  object-position: center 46%;
   user-select: none;
   pointer-events: none;
-  animation: sceneKenBurns 48s ease-in-out infinite alternate;
+  animation: scenePush 38s ease-in-out infinite alternate;
   will-change: transform;
 }
-@keyframes sceneKenBurns {
-  from { transform: scale(1.02) translate3d(0, 0, 0); }
-  to { transform: scale(1.10) translate3d(-1.4%, -1.2%, 0); }
+@keyframes scenePush {
+  0% { transform: scale(1.04) translate3d(0.6%, 0.4%, 0); }
+  100% { transform: scale(1.18) translate3d(-2.2%, -1.6%, 0); }
 }
 
-/* 暗化与渐层，保证白字可读、面板显色 */
-.auth-scene-tint {
+/* 星空闪烁：两层不同密度与节奏 */
+.login-stars {
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat;
+  mix-blend-mode: screen;
+  will-change: opacity, transform;
+}
+.login-stars-a {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 0.7px, rgba(255, 255, 255, 0) 1.4px);
+  background-size: 62px 62px;
+  opacity: 0.55;
+  animation: twinkleA 4.2s ease-in-out infinite alternate;
+}
+.login-stars-b {
+  background-image: radial-gradient(circle, rgba(200, 220, 255, 0.9) 0 1px, rgba(255, 255, 255, 0) 2px);
+  background-size: 133px 133px;
+  opacity: 0.4;
+  animation: twinkleB 7.4s ease-in-out infinite alternate;
+}
+@keyframes twinkleA {
+  0% { opacity: 0.24; transform: translate3d(0, 0, 0) scale(1); }
+  100% { opacity: 0.72; transform: translate3d(0, -1px, 0) scale(1.012); }
+}
+@keyframes twinkleB {
+  0% { opacity: 0.62; transform: translate3d(0, 0, 0); }
+  100% { opacity: 0.18; transform: translate3d(1px, 1px, 0); }
+}
+
+/* 流星：斜向划过 */
+.login-meteor {
+  position: absolute;
+  width: 120px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.9) 60%, #fff 100%);
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.85));
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.login-meteor-a {
+  top: 22%; left: 8%;
+  animation: meteor 11s ease-in infinite;
+}
+.login-meteor-b {
+  top: 38%; left: 46%;
+  width: 84px; height: 1.5px;
+  animation: meteor 17s ease-in infinite;
+  animation-delay: 6s;
+}
+@keyframes meteor {
+  0% { transform: translate3d(0, 0, 0) rotate(18deg); opacity: 0; }
+  6% { opacity: 0; }
+  10% { opacity: 0.95; }
+  26% { transform: translate3d(250px, 92px, 0) rotate(18deg); opacity: 0; }
+  100% { transform: translate3d(250px, 92px, 0) rotate(18deg); opacity: 0; }
+}
+
+/* 地平线雾气：横向缓慢漂移 */
+.login-mist {
+  position: absolute;
+  left: -12%;
+  right: -12%;
+  top: 58%;
+  height: 24%;
+  background: linear-gradient(180deg, rgba(255, 214, 170, 0) 0%, rgba(255, 208, 160, 0.22) 45%, rgba(255, 208, 160, 0) 100%);
+  filter: blur(14px);
+  animation: mistDrift 26s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+@keyframes mistDrift {
+  0% { transform: translate3d(-3%, 0, 0); opacity: 0.5; }
+  100% { transform: translate3d(3%, -6px, 0); opacity: 0.9; }
+}
+
+/* 暗化：保证白字与玻璃面板可读 */
+.login-tint {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(120% 80% at 50% 0%, rgba(6, 12, 28, 0.28) 0%, rgba(6, 12, 28, 0) 60%),
-    linear-gradient(180deg, rgba(6, 12, 28, 0.22) 0%, rgba(6, 12, 28, 0.02) 34%, rgba(6, 12, 28, 0.34) 66%, rgba(6, 12, 28, 0.62) 100%);
+    radial-gradient(120% 70% at 50% 0%, rgba(5, 9, 20, 0.30) 0%, rgba(5, 9, 20, 0) 62%),
+    linear-gradient(180deg, rgba(5, 9, 20, 0.26) 0%, rgba(5, 9, 20, 0.04) 32%, rgba(5, 9, 20, 0.34) 66%, rgba(5, 9, 20, 0.66) 100%);
   pointer-events: none;
 }
 
-/* 品牌：顶部居中（QQ / 微信 式），名字用流光艺术字 */
+/* ── 品牌：顶部居中（QQ / 微信 式），流光艺术字 ── */
 .auth-scene-brand {
   position: absolute;
   z-index: 4;
@@ -57,9 +134,7 @@
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  box-shadow:
-    0 10px 22px -12px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 22px -12px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.14);
   animation: brandFloat 6.5s ease-in-out infinite;
   will-change: transform;
 }
@@ -112,11 +187,7 @@
   50% { opacity: 0.95; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .auth-brand-logo, .auth-brand-name, .auth-brand-sub { animation: none; }
-}
-
-/* 磨砂玻璃面板 */
+/* ── 磨砂玻璃面板 ── */
 .auth-panel {
   position: relative;
   z-index: 5;
@@ -127,15 +198,12 @@
   backdrop-filter: blur(22px) saturate(150%);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow:
-    0 24px 48px -26px rgba(0, 0, 0, 0.75),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 48px -26px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.14);
   max-height: calc(100% - 104px);
   overflow-y: auto;
 }
 .auth-panel .form { display: flex; flex-direction: column; gap: 9px; }
 
-/* 输入框：透明磨砂，和背景同色系 */
 .auth-panel .input {
   height: 36px;
   border-radius: 9px;
@@ -164,7 +232,6 @@
 .auth-panel .btn-primary:hover { background: rgba(47, 111, 237, 1); }
 .auth-panel .field-error { font-size: 11.5px; color: #ffb4a8; }
 
-/* 底部链接 */
 .auth-links {
   display: flex;
   align-items: center;
@@ -189,16 +256,13 @@
 .auth-server-row .input { height: 28px; font-size: 11.5px; }
 .auth-server-row .btn { height: 28px; padding: 0 9px; font-size: 11.5px; color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.25); }
 
-/* 注册窗 */
 .auth-panel-register { max-height: calc(100% - 46px); }
-.auth-panel-register .auth-panel-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.92);
-  margin-bottom: 9px;
-}
+.auth-panel-register .auth-panel-title { font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.92); margin-bottom: 9px; }
 .auth-panel-register .muted { color: rgba(255, 255, 255, 0.62); }
 
 @media (prefers-reduced-motion: reduce) {
-  .auth-scene-bg { animation: none; }
+  .login-bg, .login-stars, .login-meteor, .login-mist, .auth-brand-logo, .auth-brand-name, .auth-brand-sub {
+    animation: none !important;
+  }
+  .login-meteor { opacity: 0; }
 }

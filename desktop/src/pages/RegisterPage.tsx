@@ -2,10 +2,10 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { registerSchema } from '@yeyu/shared'
 import logoUrl from '../assets/logo.png'
-import bgUrl from '../assets/login-bg.jpg'
 import { apiErrorMessage } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
 import { Button, Input } from '../ui'
+import { LoginScene } from '../ui/LoginScene'
 
 export default function RegisterPage() {
   const { register } = useAuth()
@@ -53,8 +53,7 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-scene">
-      <img className="auth-scene-bg" src={bgUrl} alt="" aria-hidden="true" />
-      <div className="auth-scene-tint" aria-hidden="true" />
+      <LoginScene />
 
       <header className="auth-scene-brand">
         <img className="auth-brand-logo" src={logoUrl} alt="" />
