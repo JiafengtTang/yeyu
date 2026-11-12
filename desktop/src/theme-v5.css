@@ -38,6 +38,35 @@ table.table td:nth-child(2), table.table td:nth-child(9) { white-space: normal; 
 /* 统计卡图标片占位：让标签文字不进入图标区域（也避免长标签被挤） */
 .stat-label { max-width: calc(100% - 46px); }
 
+/* 文件选择框：自绘，避免原生 file 按钮顶出虚线框 */
+.file-field { position: relative; }
+.file-field input[type="file"] {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: 0; border: 0;
+  opacity: 0; pointer-events: none;
+}
+.file-field-inner {
+  display: flex; align-items: center; gap: 10px;
+  height: 44px; padding: 0 10px;
+  border: 1px dashed #c9d4e2;
+  border-radius: 9px;
+  background: #fbfcfe;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.file-field-inner:hover { border-color: var(--brand); background: var(--brand-soft); }
+.file-field-btn {
+  display: inline-flex; align-items: center; flex: 0 0 auto;
+  height: 28px; padding: 0 12px;
+  border: 1px solid #c9d4e2; border-radius: 7px;
+  background: #fff; color: var(--ink);
+  font-size: 12.5px; box-shadow: var(--shadow-xs);
+}
+.file-field-name {
+  color: var(--ink-soft); font-size: 13px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
 /* 卡片内小节标题的垂直节奏（如"单周覆盖"紧跟保存按钮） */
 .card-body h4 { margin: 18px 0 10px; font-size: 13.5px; font-weight: 600; color: #1e293b; letter-spacing: -0.01em; }
 .card-body h4:first-child { margin-top: 0; }

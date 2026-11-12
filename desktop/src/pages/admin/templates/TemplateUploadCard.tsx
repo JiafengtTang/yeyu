@@ -42,12 +42,19 @@ export function TemplateUploadCard({ onCreated }: { onCreated(template: ReportTe
       <div className="form-grid">
         <div className="span-2">
           <Field label="模版文件" hint="支持 .docx / .md / .markdown；按 Word 标题 1/2/3 样式或 Markdown 的 ## 标题识别小节">
-            <Input
-              key={fileKey}
-              type="file"
-              accept=".docx,.md,.markdown"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-            />
+            <div className="file-field">
+              <input
+                key={fileKey}
+                id="template-file"
+                type="file"
+                accept=".docx,.md,.markdown"
+                onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+              />
+              <label className="file-field-inner" htmlFor="template-file">
+                <span className="file-field-btn">选择文件</span>
+                <span className="file-field-name">{file ? file.name : '未选择任何文件'}</span>
+              </label>
+            </div>
           </Field>
         </div>
         <Field label="模版名称" hint="留空时使用文件名">
