@@ -39,6 +39,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refresh()
   }, [refresh])
 
+  // 登录前是"小窗"，登录后展开成应用窗口；退出登录再收回
+  useEffect(() => {
+    if (loading) return
+    void window.desktop?.setWindowMode?.(user ? 'app' : 'login')
+  }, [user, loading])
+
   const login = useCallback(async (input: LoginInput) => {
     const result = await api<{ token: string; user: UserDTO }>('/api/auth/login', { method: 'POST', body: input })
     persistToken(result.token)

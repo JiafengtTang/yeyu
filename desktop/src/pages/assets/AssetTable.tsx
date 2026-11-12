@@ -1,5 +1,6 @@
 import { ASSET_STATUS_LABEL, formatMoney, type AssetDTO } from '@lab/shared'
 import { Badge, Button, Card, EmptyState, Spinner } from '../../ui'
+import { Icon } from '../../ui/icons'
 import { formatDate } from '../../api/client'
 import { statusTone } from './shared'
 
@@ -61,7 +62,7 @@ export function AssetTable({
               <th>存放位置</th>
               <th>责任人</th>
               <th>状态</th>
-              <th style={{ position: 'sticky', right: 0, background: '#fafbfc', zIndex: 2 }}>操作</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody>
@@ -88,40 +89,42 @@ export function AssetTable({
                       </span>
                     ) : null}
                   </td>
-                  <td style={{ position: 'sticky', right: 0, background: '#fff' }}>
+                  <td>
                     <div className="table-actions">
-                      <Button
-                        className="btn-sm"
-                        variant="ghost"
+                      <button
+                        className="icon-action"
                         disabled={!editable}
                         title={editable ? '编辑资产' : '仅责任人可修改'}
                         onClick={() => onEdit(asset)}
                       >
-                        编辑
-                      </Button>
-                      <Button className="btn-sm" variant="ghost" onClick={() => onAttachments(asset)}>
-                        附件{asset.attachments.length > 0 ? ' (' + String(asset.attachments.length) + ')' : ''}
-                      </Button>
+                        <Icon name="edit" size={15} />
+                      </button>
+                      <button
+                        className="icon-action"
+                        title={'附件' + (asset.attachments.length > 0 ? '（' + String(asset.attachments.length) + '）' : '')}
+                        onClick={() => onAttachments(asset)}
+                      >
+                        <Icon name="paperclip" size={15} />
+                      </button>
                       {asset.activeBorrow ? (
-                        <Button className="btn-sm" variant="ghost" onClick={() => onReturn(asset)}>
-                          归还
-                        </Button>
+                        <button className="icon-action" title="归还" onClick={() => onReturn(asset)}>
+                          <Icon name="download" size={15} />
+                        </button>
                       ) : (
-                        <Button
-                          className="btn-sm"
-                          variant="ghost"
+                        <button
+                          className="icon-action"
                           disabled={asset.status === 'SCRAPPED'}
+                          title="借用"
                           onClick={() => onBorrow(asset)}
                         >
-                          借用
-                        </Button>
+                          <Icon name="upload" size={15} />
+                        </button>
                       )}
                       {isAdmin ? (
-                        <Button className="btn-sm" variant="ghost" onClick={() => onDelete(asset)}>
-                          删除
-                        </Button>
+                        <button className="icon-action icon-action-danger" title="删除" onClick={() => onDelete(asset)}>
+                          <Icon name="trash" size={15} />
+                        </button>
                       ) : null}
-                      {!editable ? <span className="muted">仅责任人可修改</span> : null}
                     </div>
                   </td>
                 </tr>

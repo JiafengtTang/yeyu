@@ -74,7 +74,7 @@ body { background: var(--bg); color: var(--ink); font-size: 13.5px; }
 .topbar-role { color: var(--ink-soft); }
 
 /* ── 内容区：紧凑 ── */
-.content { max-width: 1060px; padding: 26px 32px 56px; gap: 14px; }
+.content { max-width: 1088px; padding: 26px 28px 56px; gap: 14px; }
 .content > * { flex: 0 0 auto; }
 
 .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
@@ -127,13 +127,26 @@ body { background: var(--bg); color: var(--ink); font-size: 13.5px; }
 
 /* ── 表格 ── */
 table.table { font-size: 12.5px; }
-table.table th, table.table td { padding: 8px 10px; border-bottom: 1px solid var(--line-soft); }
-/* 横向滚动时右侧固定操作列给个阴影，避免看起来像被切断 */
-table.table th:last-child, table.table td:last-child { box-shadow: -10px 0 10px -10px rgba(15, 23, 42, 0.12); }
+table.table th, table.table td { padding: 7px 8px; border-bottom: 1px solid var(--line-soft); }
+/* 只让长文本列换行，其余单行；操作列不再 sticky，避免覆盖相邻单元格 */
+table.table th, table.table td { white-space: nowrap; }
+table.table td:nth-child(2), table.table td:nth-child(9) { white-space: normal; min-width: 88px; line-height: 1.45; }
+table.table td:nth-child(2) { max-width: 118px; }
+table.table td:nth-child(9) { max-width: 128px; }
 table.table th { background: #fbfbf9; color: var(--ink-soft); font-size: 11.5px; font-weight: 500; }
 table.table tbody tr:nth-child(even) { background: #fcfcfa; }
 table.table tbody tr:hover { background: #f6f7fb; }
+.table-actions { gap: 2px; }
 .table-actions .btn { height: 24px; padding: 0 8px; font-size: 12px; }
+.icon-action {
+  display: grid; place-items: center;
+  width: 26px; height: 26px; border-radius: 6px;
+  border: none; background: transparent; color: #8f949a;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.icon-action:hover:not(:disabled) { background: #f1f1ee; color: var(--ink); }
+.icon-action:disabled { opacity: 0.35; cursor: not-allowed; }
+.icon-action-danger:hover:not(:disabled) { background: #fdeceb; color: #c0392b; }
 .pager { padding: 9px 14px; font-size: 12px; color: var(--ink-faint); border-top: 1px solid var(--line-soft); }
 
 /* ── 空态 ── */
@@ -200,11 +213,11 @@ table.table tbody tr:hover { background: #f6f7fb; }
 .notice-danger { background: #fdf1f0; color: #b4382b; border-color: #f7dedb; }
 
 /* ── 登录页：单栏极简 ── */
-.auth-page { min-height: 100%; display: grid; place-items: center; padding: 24px; background: var(--bg); }
+.auth-page { min-height: 100%; display: grid; place-items: center; padding: 14px; background: var(--bg); }
 .auth-meta { margin: 0; text-align: center; font-size: 10.5px; color: #c3c3bc; letter-spacing: 0.04em; }
 .auth-card.auth-card-minimal {
-  width: 360px; max-width: 100%;
-  padding: 28px 26px 22px;
+  width: 100%; max-width: 400px;
+  padding: 26px 24px 20px;
   border: 1px solid var(--line); border-radius: 12px;
   background: #fff; box-shadow: none;
   display: flex; flex-direction: column; gap: 16px;

@@ -24,8 +24,17 @@ export async function initClient(): Promise<void> {
   const stored = localStorage.getItem(BASE_KEY)
   if (stored) baseUrl = stored
   try {
-    const cfg = await window.desktop?.getConfig()
+    const bridge = window.desktop
+    const cfg = await bridge?.getConfig?.()
     if (cfg?.serverUrl) baseUrl = cfg.serverUrl.replace(/\/+$/, '')
+    // 桌面端把会话写在 userData/config.json：file:// 下 localStorage 不可靠，且重启后要免登录
+    const saved = await bridge?.getSession?.()
+    if (saved) {
+      token = saved
+      localStorage.setItem(TOKEN_KEY, saved)
+    } else if (token) {
+      void bridge?.setSession?.(token)
+    }
   } catch {
     // 桌面桥不可用时退回 localStorage / 默认值
   }
@@ -43,6 +52,7 @@ export function setToken(next: string | null): void {
   token = next
   if (next) localStorage.setItem(TOKEN_KEY, next)
   else localStorage.removeItem(TOKEN_KEY)
+  void window.desktop?.setSession?.(next)
 }
 
 export async function setServerUrl(next: string): Promise<void> {

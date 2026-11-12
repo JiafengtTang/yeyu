@@ -3,11 +3,17 @@ import path from 'node:path'
 import os from 'node:os'
 import { promises as fs } from 'node:fs'
 
+type WindowMode = 'login' | 'app'
+
 interface AppConfig {
   serverUrl: string
+  sessionToken?: string | null
 }
 
-const DEFAULT_CONFIG: AppConfig = { serverUrl: 'http://127.0.0.1:4000' }
+const DEFAULT_CONFIG: AppConfig = { serverUrl: 'http://127.0.0.1:4000', sessionToken: null }
+const LOGIN_SIZE = { width: 460, height: 640 }
+const APP_SIZE = { width: 1360, height: 864 }
+
 const devServerArg = process.argv.find((a) => a.startsWith('--dev-server='))
 const devServerUrl = devServerArg ? devServerArg.split('=')[1] : null
 let mainWindow: BrowserWindow | null = null
@@ -34,14 +40,35 @@ async function writeConfig(patch: Partial<AppConfig>): Promise<AppConfig> {
   return next
 }
 
-function createWindow(): void {
+function applyMode(win: BrowserWindow, mode: WindowMode): void {
+  if (mode === 'login') {
+    win.setResizable(true)
+    win.setMinimumSize(360, 480)
+    win.setSize(LOGIN_SIZE.width, LOGIN_SIZE.height, true)
+    win.center()
+    win.setResizable(false)
+  } else {
+    win.setResizable(true)
+    win.setMinimumSize(1080, 700)
+    win.setSize(APP_SIZE.width, APP_SIZE.height, true)
+    win.center()
+  }
+}
+
+async function createWindow(): Promise<void> {
+  const config = await readConfig()
+  const startMode: WindowMode = config.sessionToken ? 'app' : 'login'
+  const size = startMode === 'app' ? APP_SIZE : LOGIN_SIZE
+
   mainWindow = new BrowserWindow({
-    width: 1360,
-    height: 880,
-    minWidth: 1080,
-    minHeight: 700,
+    width: size.width,
+    height: size.height,
+    minWidth: 360,
+    minHeight: 480,
     title: '课题组资产台账',
-    backgroundColor: '#f4f6f9',
+    backgroundColor: '#fbfbfa',
+    show: false,
+    resizable: startMode === 'app',
     icon: app.isPackaged ? undefined : path.join(__dirname, '..', 'build', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -53,22 +80,46 @@ function createWindow(): void {
 
   if (devServerUrl) {
     void mainWindow.loadURL(devServerUrl)
-    // 默认不弹 DevTools（它会在终端刷 Autofill.enable failed 这类噪声）；需要时 OPEN_DEVTOOLS=1
     if (process.env.OPEN_DEVTOOLS === '1') mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
     void mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'))
   }
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show()
+    if (mainWindow) applyMode(mainWindow, startMode)
+  })
 
   mainWindow.on('closed', () => {
     mainWindow = null
   })
 }
 
-ipcMain.handle('config:get', async () => readConfig())
+ipcMain.handle('config:get', async () => {
+  const config = await readConfig()
+  return { serverUrl: config.serverUrl }
+})
 
 ipcMain.handle('config:set', async (_event, payload: Partial<AppConfig>) => {
   const next = await writeConfig({ serverUrl: payload?.serverUrl ?? DEFAULT_CONFIG.serverUrl })
-  return next
+  return { serverUrl: next.serverUrl }
+})
+
+ipcMain.handle('session:get', async () => {
+  const config = await readConfig()
+  return config.sessionToken ?? null
+})
+
+ipcMain.handle('session:set', async (_event, token: string | null) => {
+  await writeConfig({ sessionToken: token ?? null })
+  return { ok: true }
+})
+
+ipcMain.handle('window:set-mode', async (_event, mode: WindowMode) => {
+  const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+  if (!win) return { ok: false }
+  applyMode(win, mode === 'app' ? 'app' : 'login')
+  return { ok: true, mode }
 })
 
 ipcMain.handle('app:info', async () => ({
@@ -102,17 +153,16 @@ ipcMain.handle('report:printPdf', async (_event, payload: { html: string; filena
 })
 
 app.whenReady().then(() => {
-  // 开发态 Dock 会显示 Electron 默认图标，这里换成自己的
   if (process.platform === 'darwin' && !app.isPackaged && app.dock) {
     try {
       app.dock.setIcon(path.join(__dirname, '..', 'build', 'icon.png'))
     } catch {
-      // 图标文件缺失不影响启动
+      // 图标缺失不影响启动
     }
   }
-  createWindow()
+  void createWindow()
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) void createWindow()
   })
 })
 
