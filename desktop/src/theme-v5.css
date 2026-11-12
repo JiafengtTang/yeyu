@@ -1,0 +1,54 @@
+/* ─────────────────────────────────────────────
+   lab-asset-hub · v5 补丁（叠在 v3 之上）
+   1) 滚动容器修正：滚动交给 .main，内容居中不再"飘"滚动条
+   2) 保留表格图标按钮、工具条分组等结构性修复
+   3) 小窗口（登录）下的紧凑适配
+   ───────────────────────────────────────────── */
+
+/* ── 1. 滚动与布局 ── */
+.main { overflow-y: auto; overflow-x: hidden; }
+.topbar { position: sticky; top: 0; z-index: 30; }
+.content {
+  flex: 0 0 auto;
+  overflow: visible;
+  max-width: 1180px;
+  width: 100%;
+  margin: 0 auto;
+}
+.content > * { flex: 0 0 auto; }
+
+/* ── 2. 表格行内操作：图标按钮 ── */
+.table-actions { gap: 2px; }
+.icon-action {
+  display: grid; place-items: center;
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  border: none; background: transparent; color: #8b93a0;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.icon-action:hover:not(:disabled) { background: #eef2f8; color: #1e293b; }
+.icon-action:disabled { opacity: 0.35; cursor: not-allowed; }
+.icon-action-danger:hover:not(:disabled) { background: #fdecec; color: #c0392b; }
+table.table td:nth-child(2), table.table td:nth-child(9) { white-space: normal; min-width: 88px; line-height: 1.45; }
+
+/* 工具条：筛选与操作分组，避免挤成一团 */
+.filter-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.filter-actions .btn { flex: 0 0 auto; }
+
+/* 统计卡图标片占位：让标签文字不进入图标区域（也避免长标签被挤） */
+.stat-label { max-width: calc(100% - 46px); }
+
+/* 卡片内小节标题的垂直节奏（如"单周覆盖"紧跟保存按钮） */
+.card-body h4 { margin: 18px 0 10px; font-size: 13.5px; font-weight: 600; color: #1e293b; letter-spacing: -0.01em; }
+.card-body h4:first-child { margin-top: 0; }
+.form-grid .toolbar { margin: 0; }
+
+/* ── 3. 小窗口（登录/注册）适配 ── */
+@media (max-width: 900px), (max-height: 760px) {
+  .auth-page { padding: 12px; }
+  .auth-shell { grid-template-columns: minmax(0, 1fr); max-width: 420px; }
+  .auth-aside { display: none; }
+  .auth-main { padding: 22px 20px; gap: 12px; }
+  .auth-main h1 { font-size: 19px; }
+  .auth-card { width: min(420px, 100%); padding: 22px 20px; }
+}
