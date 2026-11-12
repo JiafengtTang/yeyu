@@ -1,7 +1,7 @@
-import type { ApiErrorBody } from '@lab/shared'
+import type { ApiErrorBody } from '@yeyu/shared'
 
-const TOKEN_KEY = 'lab.token'
-const BASE_KEY = 'lab.baseUrl'
+const TOKEN_KEY = 'yeyu.token'
+const BASE_KEY = 'yeyu.baseUrl'
 let baseUrl = 'http://127.0.0.1:4000'
 let token: string | null = null
 

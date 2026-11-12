@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ReportTemplateDTO } from '@lab/shared'
+import type { ReportTemplateDTO } from '@yeyu/shared'
 import { formatDateTime } from '../../../api/client'
 import { Badge, Button, Card, EmptyState, Modal, Spinner } from '../../../ui'
 

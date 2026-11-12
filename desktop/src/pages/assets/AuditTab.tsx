@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { AuditDTO, ListResult } from '@lab/shared'
+import type { AuditDTO, ListResult } from '@yeyu/shared'
 import { api, apiErrorMessage, formatDateTime } from '../../api/client'
 import { Badge, Button, Card, EmptyState, Input, Select, Spinner, useToast } from '../../ui'
 

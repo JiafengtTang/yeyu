@@ -1,5 +1,5 @@
 // 开发启动器：起 vite + electron，并剥掉会让 electron 退化成纯 Node 的环境变量
-// 用法：pnpm --filter @lab/desktop dev   （或根目录 pnpm dev）
+// 用法：pnpm --filter @yeyu/desktop dev   （或根目录 pnpm dev）
 import { execFileSync, spawn } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import net from 'node:net'

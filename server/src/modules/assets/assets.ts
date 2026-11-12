@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import type { MultipartFields } from '@fastify/multipart'
 import { Prisma } from '@prisma/client'
-import { ATTACHMENT_KINDS, assetInputSchema, assetPatchSchema, assetQuerySchema, type AttachmentKind } from '@lab/shared'
+import { ATTACHMENT_KINDS, assetInputSchema, assetPatchSchema, assetQuerySchema, type AttachmentKind } from '@yeyu/shared'
 import { prisma } from '../../lib/prisma.js'
 import { AppError } from '../../lib/errors.js'
 import { recordAudit } from '../../lib/audit.js'

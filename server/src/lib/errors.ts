@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import type { ApiErrorCode } from '@lab/shared'
+import type { ApiErrorCode } from '@yeyu/shared'
 
 const STATUS: Record<ApiErrorCode, number> = {
   UNAUTHENTICATED: 401,

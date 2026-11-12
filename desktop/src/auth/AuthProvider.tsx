@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { LoginInput, RegisterInput, UserDTO } from '@lab/shared'
+import type { LoginInput, RegisterInput, UserDTO } from '@yeyu/shared'
 import { ApiError, api, getToken, setToken as persistToken } from '../api/client'
 
 interface AuthContextValue {

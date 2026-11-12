@@ -3,7 +3,7 @@ import { EditorContent, useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
-import type { MediaDTO } from '@lab/shared'
+import type { MediaDTO } from '@yeyu/shared'
 import { apiErrorMessage, apiForm, mediaUrl } from '../../api/client'
 import { useToast } from '../../ui'
 

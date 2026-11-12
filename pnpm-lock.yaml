@@ -14,7 +14,7 @@ importers:
 
   desktop:
     dependencies:
-      '@lab/shared':
+      '@yeyu/shared':
         specifier: workspace:*
         version: link:../shared
       '@tiptap/extension-image':
@@ -81,7 +81,7 @@ importers:
       '@fastify/multipart':
         specifier: ^8.3.0
         version: 8.3.0
-      '@lab/shared':
+      '@yeyu/shared':
         specifier: workspace:*
         version: link:../shared
       '@prisma/client':

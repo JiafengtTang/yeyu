@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { DeadlineDTO, ListResult, ReportTemplateDTO } from '@lab/shared'
-import { isoWeekKey } from '@lab/shared'
+import type { DeadlineDTO, ListResult, ReportTemplateDTO } from '@yeyu/shared'
+import { isoWeekKey } from '@yeyu/shared'
 import { api, apiErrorMessage } from '../../api/client'
 import { useToast } from '../../ui'
 import { DeadlineCard } from './templates/DeadlineCard'

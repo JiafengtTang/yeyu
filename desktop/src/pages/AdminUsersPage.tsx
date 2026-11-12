@@ -7,7 +7,7 @@ import {
   type Role,
   type UserDTO,
   type UserStatus
-} from '@lab/shared'
+} from '@yeyu/shared'
 import { api, apiErrorMessage, formatDateTime } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, Select, Spinner, useToast } from '../ui'

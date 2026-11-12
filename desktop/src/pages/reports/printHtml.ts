@@ -1,6 +1,6 @@
 import { resolveMediaHtml } from '../../api/client'
-import { REPORT_STATUS_LABEL } from '@lab/shared'
-import type { ReportDTO } from '@lab/shared'
+import { REPORT_STATUS_LABEL } from '@yeyu/shared'
+import type { ReportDTO } from '@yeyu/shared'
 
 function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')

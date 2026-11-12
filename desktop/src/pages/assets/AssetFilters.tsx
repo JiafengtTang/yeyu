@@ -1,5 +1,5 @@
 import { useRef, type ChangeEvent } from 'react'
-import { ASSET_CATEGORY_SUGGESTIONS, ASSET_STATUSES, ASSET_STATUS_LABEL } from '@lab/shared'
+import { ASSET_CATEGORY_SUGGESTIONS, ASSET_STATUSES, ASSET_STATUS_LABEL } from '@yeyu/shared'
 import { Button, Card, Input, Select } from '../../ui'
 import type { OwnerOption } from './shared'
 

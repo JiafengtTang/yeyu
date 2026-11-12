@@ -1,4 +1,4 @@
-import type { ReportTemplateDTO, TemplateSectionDTO } from '@lab/shared'
+import type { ReportTemplateDTO, TemplateSectionDTO } from '@yeyu/shared'
 
 export interface TemplateRow {
   id: string

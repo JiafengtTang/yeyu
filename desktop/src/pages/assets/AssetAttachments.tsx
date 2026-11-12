@@ -5,7 +5,7 @@ import {
   type AssetAttachmentDTO,
   type AssetDTO,
   type AttachmentKind
-} from '@lab/shared'
+} from '@yeyu/shared'
 import { api, apiDownload, apiErrorMessage, apiForm, formatDateTime, mediaUrl } from '../../api/client'
 import { Button, EmptyState, Modal, Select, Spinner, useToast } from '../../ui'
 

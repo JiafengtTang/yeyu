@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import type { Role } from '@lab/shared'
+import type { Role } from '@yeyu/shared'
 import { AppError } from '../lib/errors'
 
 export interface AuthUser {

@@ -1,5 +1,5 @@
-import type { ReportStatus } from '@lab/shared'
-import { REPORT_STATUS_LABEL } from '@lab/shared'
+import type { ReportStatus } from '@yeyu/shared'
+import { REPORT_STATUS_LABEL } from '@yeyu/shared'
 import { Badge } from '../../ui'
 
 type Tone = 'default' | 'success' | 'warning' | 'danger' | 'info'

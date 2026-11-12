@@ -7,7 +7,7 @@ import {
   type InventoryCheckStatus,
   type InventoryItemDTO,
   type ListResult
-} from '@lab/shared'
+} from '@yeyu/shared'
 import { api, apiDownload, apiErrorMessage, formatDateTime } from '../../api/client'
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, Select, Spinner, useToast } from '../../ui'
 import type { OwnerOption } from './shared'

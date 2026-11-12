@@ -9,7 +9,7 @@ cd "$ROOT"
 API_PORT="${API_PORT:-4000}"
 WEB_PORT="${WEB_PORT:-5173}"
 export DATABASE_URL="${DATABASE_URL:-file:./dev.db}"
-export JWT_SECRET="${JWT_SECRET:-local-dev-secret-lab-asset-hub}"
+export JWT_SECRET="${JWT_SECRET:-local-dev-secret-yeyu}"
 export WEB_PORT
 
 # VS Code / DSH 这类 Electron 应用的集成终端会带上这个变量，会让 electron 退化成纯 Node（窗口不出现）

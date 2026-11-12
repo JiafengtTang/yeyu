@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { ListResult, ReportCommentDTO, ReportDTO, ReportStatus } from '@lab/shared'
-import { REPORT_STATUS_LABEL } from '@lab/shared'
+import type { ListResult, ReportCommentDTO, ReportDTO, ReportStatus } from '@yeyu/shared'
+import { REPORT_STATUS_LABEL } from '@yeyu/shared'
 import { api, apiErrorMessage, formatDateTime } from '../api/client'
 import { Badge, Button, Card, EmptyState, Field, Select, Spinner, Textarea, useToast } from '../ui'
 import { CommentPanel } from './reports/CommentPanel'

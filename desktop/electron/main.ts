@@ -65,7 +65,7 @@ async function createWindow(): Promise<void> {
     height: size.height,
     minWidth: 360,
     minHeight: 480,
-    title: '课题组资产台账',
+    title: '页屿',
     backgroundColor: '#fbfbfa',
     show: false,
     resizable: startMode === 'app',

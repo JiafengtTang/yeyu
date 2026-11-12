@@ -1,4 +1,4 @@
-import type { UserDTO } from '@lab/shared'
+import type { UserDTO } from '@yeyu/shared'
 import { api } from '../../api/client'
 
 export interface OwnerOption {

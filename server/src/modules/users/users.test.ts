@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type { FastifyInstance } from 'fastify'
 import bcrypt from 'bcryptjs'
-import type { ApiErrorBody, ListResult, UserDTO } from '@lab/shared'
+import type { ApiErrorBody, ListResult, UserDTO } from '@yeyu/shared'
 import { buildApp } from '../../app.js'
 import { disconnectPrisma, prisma } from '../../lib/prisma.js'
 

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import bcrypt from 'bcryptjs'
-import { loginSchema, registerSchema, type Role } from '@lab/shared'
+import { loginSchema, registerSchema, type Role } from '@yeyu/shared'
 import { recordAudit } from '../../lib/audit.js'
 import { AppError } from '../../lib/errors.js'
 import { prisma } from '../../lib/prisma.js'

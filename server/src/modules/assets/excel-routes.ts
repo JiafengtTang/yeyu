@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
-import { assetQuerySchema, type AssetStatus } from '@lab/shared'
+import { assetQuerySchema, type AssetStatus } from '@yeyu/shared'
 import { prisma } from '../../lib/prisma.js'
 import { AppError } from '../../lib/errors.js'
 import { recordAudit } from '../../lib/audit.js'

@@ -18,7 +18,7 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'))
 
 try {
   await app.listen({ port, host })
-  app.log.info('lab-asset-hub server listening on http://' + host + ':' + String(port))
+  app.log.info('yeyu server listening on http://' + host + ':' + String(port))
 } catch (err) {
   app.log.error(err)
   process.exit(1)

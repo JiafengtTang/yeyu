@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import type { Prisma } from '@prisma/client'
 import bcrypt from 'bcryptjs'
-import { createUserSchema, resetPasswordSchema, updateUserSchema, USER_STATUSES } from '@lab/shared'
+import { createUserSchema, resetPasswordSchema, updateUserSchema, USER_STATUSES } from '@yeyu/shared'
 import { z } from 'zod'
 import { recordAudit } from '../../lib/audit.js'
 import { AppError } from '../../lib/errors.js'

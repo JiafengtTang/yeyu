@@ -2,8 +2,8 @@
 # 从 scripts/backup.sh 生成的归档恢复数据库与 uploads 目录
 #
 # 用法：
-#   scripts/restore.sh backups/lab-asset-hub-backup-20260101-030000.tar.gz          # 预演，只打印将要做什么
-#   scripts/restore.sh backups/lab-asset-hub-backup-20260101-030000.tar.gz --yes    # 真正恢复
+#   scripts/restore.sh backups/yeyu-backup-20260101-030000.tar.gz          # 预演，只打印将要做什么
+#   scripts/restore.sh backups/yeyu-backup-20260101-030000.tar.gz --yes    # 真正恢复
 #   DB_FILE=... UPLOAD_DIR=... scripts/restore.sh <归档> --yes
 #
 # 安全约定：

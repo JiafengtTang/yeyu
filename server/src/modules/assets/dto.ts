@@ -10,7 +10,7 @@ import type {
   InventoryCheckStatus,
   InventoryItemDTO,
   InventoryResult
-} from '@lab/shared'
+} from '@yeyu/shared'
 import { toMediaDTO } from '../../lib/storage.js'
 import { iso } from '../../lib/time.js'
 

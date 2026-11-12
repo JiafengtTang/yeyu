@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { registerSchema } from '@lab/shared'
+import { registerSchema } from '@yeyu/shared'
 import { apiErrorMessage } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
 import { Button, Field, Input } from '../ui'

@@ -1,4 +1,4 @@
-import type { DeadlineDTO } from '@lab/shared'
+import type { DeadlineDTO } from '@yeyu/shared'
 
 export const WEEKDAY_LABELS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 

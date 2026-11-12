@@ -1,4 +1,4 @@
-import { ASSET_STATUSES, ASSET_STATUS_LABEL, INVENTORY_CHECK_LABEL, INVENTORY_RESULT_LABEL, type AssetStatus, type InventoryCheckStatus, type InventoryResult } from '@lab/shared'
+import { ASSET_STATUSES, ASSET_STATUS_LABEL, INVENTORY_CHECK_LABEL, INVENTORY_RESULT_LABEL, type AssetStatus, type InventoryCheckStatus, type InventoryResult } from '@yeyu/shared'
 
 export type AssetColumnKey =
   | 'code'

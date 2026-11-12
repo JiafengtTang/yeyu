@@ -1,4 +1,4 @@
-import { ASSET_STATUS_LABEL, formatMoney, type AssetDTO } from '@lab/shared'
+import { ASSET_STATUS_LABEL, formatMoney, type AssetDTO } from '@yeyu/shared'
 import { Badge, Button, Card, EmptyState, Spinner } from '../../ui'
 import { Icon } from '../../ui/icons'
 import { formatDate } from '../../api/client'

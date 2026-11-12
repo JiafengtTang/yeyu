@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { inventoryCheckSchema, inventoryCreateSchema, type InventoryCheckStatus, type InventoryResult } from '@lab/shared'
+import { inventoryCheckSchema, inventoryCreateSchema, type InventoryCheckStatus, type InventoryResult } from '@yeyu/shared'
 import { prisma } from '../../lib/prisma.js'
 import { AppError } from '../../lib/errors.js'
 import { recordAudit } from '../../lib/audit.js'

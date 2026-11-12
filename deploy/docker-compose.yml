@@ -1,4 +1,4 @@
-# lab-asset-hub 单机部署（SQLite + uploads 全部放进命名卷 lab-asset-hub-data）
+# yeyu 单机部署（SQLite + uploads 全部放进命名卷 yeyu-data）
 #
 # 首次部署：
 #   cd deploy
@@ -8,15 +8,15 @@
 #   curl http://127.0.0.1:4000/api/health
 #
 # 覆盖现实：本仓库开发机没有 docker，本文件只做了 YAML 语法校验，未在真机跑过 compose up。
-name: lab-asset-hub
+name: yeyu
 
 services:
   server:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    image: lab-asset-hub-server:0.1.0
-    container_name: lab-asset-hub
+    image: yeyu-server:0.1.0
+    container_name: yeyu
     restart: unless-stopped
     environment:
       # SQLite 绝对路径指向卷内，避免容器重建后数据丢失
@@ -51,4 +51,4 @@ services:
 
 volumes:
   lab-data:
-    name: lab-asset-hub-data
+    name: yeyu-data

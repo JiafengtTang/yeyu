@@ -1,4 +1,4 @@
-import type { DeadlineDTO } from '@lab/shared'
+import type { DeadlineDTO } from '@yeyu/shared'
 import { prisma } from '../../lib/prisma.js'
 import { AppError } from '../../lib/errors.js'
 import { weekKeyToRange } from '../../lib/time.js'

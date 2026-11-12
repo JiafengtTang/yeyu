@@ -1,4 +1,4 @@
-import type { ReportSectionDTO, TemplateSectionDTO } from '@lab/shared'
+import type { ReportSectionDTO, TemplateSectionDTO } from '@yeyu/shared'
 import { prisma } from '../../lib/prisma.js'
 import { parseTemplateSections } from '../templates/dto.js'
 

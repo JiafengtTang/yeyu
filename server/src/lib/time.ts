@@ -1,4 +1,4 @@
-import { isoWeekKey, weekRange, weekKeyToRange } from '@lab/shared'
+import { isoWeekKey, weekRange, weekKeyToRange } from '@yeyu/shared'
 
 export { isoWeekKey, weekRange, weekKeyToRange }
 

@@ -6,8 +6,8 @@ import {
   commentInputSchema,
   reportReviewSchema,
   reportSaveSchema
-} from '@lab/shared'
-import type { ReportStatus } from '@lab/shared'
+} from '@yeyu/shared'
+import type { ReportStatus } from '@yeyu/shared'
 import { AppError } from '../../lib/errors'
 import { prisma } from '../../lib/prisma'
 import { recordAudit } from '../../lib/audit'

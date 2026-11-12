@@ -1,4 +1,4 @@
-import type { ReportSummaryDTO } from '@lab/shared'
+import type { ReportSummaryDTO } from '@yeyu/shared'
 import type { AuthUser } from '../../plugins/auth'
 import { isAdmin } from '../../plugins/auth'
 import { prisma } from '../../lib/prisma'

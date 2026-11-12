@@ -1,8 +1,8 @@
 # electron-builder 配置：Windows / macOS 免签名产物
 #
 # 构建（在 desktop/ 目录）：
-#   pnpm run build:mac          # 当前机器架构 → release/lab-asset-hub-<ver>-mac-<arch>.dmg
-#   pnpm run build:win          # NSIS 安装包 → release/lab-asset-hub-<ver>-win-x64-setup.exe
+#   pnpm run build:mac          # 当前机器架构 → release/yeyu-<ver>-mac-<arch>.dmg
+#   pnpm run build:win          # NSIS 安装包 → release/yeyu-<ver>-win-x64-setup.exe
 #   只出可执行目录（不压 dmg/exe，最快）：
 #   npx --no-install electron-builder --dir --mac
 #
@@ -12,8 +12,8 @@
 #   也可用环境变量 ELECTRON_MIRROR / ELECTRON_BUILDER_BINARIES_MIRROR 覆盖。
 # - 主进程只依赖 electron 与 Node 内置模块，渲染进程已由 Vite 打成静态文件，
 #   因此产物里不需要 node_modules（files 显式排除，避免把 workspace 依赖卷进去）。
-appId: com.lab.assethub
-productName: LabAssetHub
+appId: com.yeyu.desktop
+productName: 页屿
 copyright: Copyright © 2026 课题组
 
 directories:
@@ -43,10 +43,10 @@ mac:
   notarize: false
   target:
     - target: dmg
-  artifactName: lab-asset-hub-${version}-mac-${arch}.${ext}
+  artifactName: yeyu-${version}-mac-${arch}.${ext}
 
 dmg:
-  title: 课题组资产台账 ${version}
+  title: 页屿 ${version}
   contents:
     - x: 140
       y: 200
@@ -68,6 +68,6 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: 课题组资产台账
+  shortcutName: 页屿
   language: '2052'
-  artifactName: lab-asset-hub-${version}-win-${arch}-setup.${ext}
+  artifactName: yeyu-${version}-win-${arch}-setup.${ext}

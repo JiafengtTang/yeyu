@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 #
-# lab-asset-hub 服务端镜像（SQLite 单文件 + uploads 目录，全部落在 /data 卷里）
+# yeyu 服务端镜像（SQLite 单文件 + uploads 目录，全部落在 /data 卷里）
 #
 # 构建（在仓库根目录执行，context 必须是仓库根，因为要拷 shared/ 与 server/）：
-#   docker build -f deploy/Dockerfile -t lab-asset-hub-server:0.1.0 .
+#   docker build -f deploy/Dockerfile -t yeyu-server:0.1.0 .
 # 或直接用 compose（deploy/docker-compose.yml 已经配好 context）：
 #   cd deploy && docker compose up -d --build
 #
@@ -35,7 +35,7 @@ COPY shared/package.json ./shared/
 COPY server/package.json ./server/
 COPY desktop/package.json ./desktop/
 
-RUN pnpm install --frozen-lockfile --prod=false --filter "@lab/server..."
+RUN pnpm install --frozen-lockfile --prod=false --filter "@yeyu/server..."
 
 # 再拷源码并生成 Prisma Client
 COPY shared ./shared

@@ -1,5 +1,5 @@
 # nginx 反向代理示例（可选）：把 4000 端口的服务放到 80/443 上，供内网访问
-# 用法：复制到 /etc/nginx/conf.d/lab-asset-hub.conf，改 server_name 与证书路径后 nginx -t && systemctl reload nginx
+# 用法：复制到 /etc/nginx/conf.d/yeyu.conf，改 server_name 与证书路径后 nginx -t && systemctl reload nginx
 
 upstream lab_asset_hub {
     server 127.0.0.1:4000;

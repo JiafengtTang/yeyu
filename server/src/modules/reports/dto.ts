@@ -1,4 +1,4 @@
-import type { ReportCommentDTO, ReportDTO, ReportStatus, UserDTO } from '@lab/shared'
+import type { ReportCommentDTO, ReportDTO, ReportStatus, UserDTO } from '@yeyu/shared'
 import { parseReportSections, parseTemplateSnapshot } from './sections.js'
 
 export interface UserRef {

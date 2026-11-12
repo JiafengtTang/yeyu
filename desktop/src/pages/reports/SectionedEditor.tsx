@@ -1,4 +1,4 @@
-import type { ReportSectionDTO } from '@lab/shared'
+import type { ReportSectionDTO } from '@yeyu/shared'
 import { RichEditor } from './RichEditor'
 
 function escapeHtml(text: string): string {

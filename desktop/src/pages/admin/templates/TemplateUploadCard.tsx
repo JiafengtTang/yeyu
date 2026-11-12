@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ReportTemplateDTO } from '@lab/shared'
+import type { ReportTemplateDTO } from '@yeyu/shared'
 import { apiErrorMessage, apiForm } from '../../../api/client'
 import { Button, Card, Field, Input, useToast } from '../../../ui'
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ReportCommentDTO } from '@lab/shared'
+import type { ReportCommentDTO } from '@yeyu/shared'
 import { api, apiErrorMessage, formatDateTime } from '../../api/client'
 import { Button, Card, Field, Textarea, useToast } from '../../ui'
 

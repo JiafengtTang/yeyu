@@ -27,7 +27,7 @@ ls -lh release/*.exe 2>/dev/null || true
 cat <<'TIP'
 
 免签名安装提示（无代码签名证书）：
-  1. 把 release/lab-asset-hub-<版本>-win-x64-setup.exe 拷到目标 Windows。
+  1. 把 release/yeyu-<版本>-win-x64-setup.exe 拷到目标 Windows。
   2. 首次运行会触发 SmartScreen：点「更多信息」→「仍要运行」。
-  3. 安装包默认非管理员安装（装到当前用户目录），可自选安装路径，桌面与开始菜单快捷方式为「课题组资产台账」。
+  3. 安装包默认非管理员安装（装到当前用户目录），可自选安装路径，桌面与开始菜单快捷方式为「页屿」。
 TIP

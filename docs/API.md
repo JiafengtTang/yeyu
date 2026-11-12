@@ -1,4 +1,4 @@
-# lab-asset-hub 接口契约（冻结版 v1）
+# yeyu 接口契约（冻结版 v1）
 
 本文件是并行开发的唯一接口契约。**改动契约必须先改本文件并由调度方确认**，否则会导致四个并行子任务互相踩踏。
 
@@ -11,7 +11,7 @@
 - 响应：成功直接返回资源 JSON（**不要包信封**）；列表统一 `{ items, total, page, pageSize }`。
 - 错误：`{ "error": { "code", "message", "details"? } }`，抛 `AppError`（`server/src/lib/errors.ts`）即可，全局处理器已就位。
   - 码表：`UNAUTHENTICATED`(401) `FORBIDDEN`(403) `NOT_FOUND`(404) `VALIDATION`(422) `CONFLICT`(409) `REPORT_LOCKED`(409) `INTERNAL`(500)。
-- 入参校验：一律用 `@lab/shared` 里的 zod schema `parse`，失败抛 `AppError.validation('...', err.issues)`。
+- 入参校验：一律用 `@yeyu/shared` 里的 zod schema `parse`，失败抛 `AppError.validation('...', err.issues)`。
 - 时间：DTO 中的时间字段一律 ISO 字符串（`toISOString()`）。
 - 分页默认 `page=1`、`pageSize=20`（上限 200）。
 - 审计：写操作必须调用 `recordAudit({ actor, action, entityType, entityId, before, after, ip })`（`server/src/lib/audit.ts`），失败不阻断主流程。

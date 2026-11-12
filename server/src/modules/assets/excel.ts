@@ -1,5 +1,5 @@
 import ExcelJS from 'exceljs'
-import type { InventoryBatchDTO, InventoryResult } from '@lab/shared'
+import type { InventoryBatchDTO, InventoryResult } from '@yeyu/shared'
 import {
   ASSET_COLUMNS,
   TEMPLATE_ROW,
@@ -73,7 +73,7 @@ function applyHeaderStyle(sheet: ExcelJS.Worksheet): void {
 
 export function buildAssetWorkbook(rows: AssetRow[]): ExcelJS.Workbook {
   const workbook = new ExcelJS.Workbook()
-  workbook.creator = 'lab-asset-hub'
+  workbook.creator = 'yeyu'
   const sheet = workbook.addWorksheet('资产台账')
   sheet.columns = ASSET_COLUMNS.map((column) => ({ header: column.header, key: column.key, width: column.width }))
   applyHeaderStyle(sheet)
@@ -87,7 +87,7 @@ export function buildAssetWorkbook(rows: AssetRow[]): ExcelJS.Workbook {
 
 export function buildTemplateWorkbook(): ExcelJS.Workbook {
   const workbook = new ExcelJS.Workbook()
-  workbook.creator = 'lab-asset-hub'
+  workbook.creator = 'yeyu'
   const sheet = workbook.addWorksheet('导入模板')
   sheet.columns = ASSET_COLUMNS.map((column) => ({ header: column.header, key: column.key, width: column.width }))
   applyHeaderStyle(sheet)
@@ -97,7 +97,7 @@ export function buildTemplateWorkbook(): ExcelJS.Workbook {
 
 export function buildInventoryWorkbook(batch: InventoryBatchDTO, items: InventoryItemRow[]): ExcelJS.Workbook {
   const workbook = new ExcelJS.Workbook()
-  workbook.creator = 'lab-asset-hub'
+  workbook.creator = 'yeyu'
   const sheet = workbook.addWorksheet('盘点差异')
   sheet.columns = [
     { header: '资产编码', key: 'code', width: 18 },

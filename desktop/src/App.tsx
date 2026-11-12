@@ -52,7 +52,7 @@ function Guard({ adminOnly = false, children }: { adminOnly?: boolean; children:
 function Shell({ children }: { children: ReactNode }) {
   const { user, isAdmin, logout } = useAuth()
   const location = useLocation()
-  const title = location.pathname.startsWith('/reports/') ? '周报编辑' : TITLES[location.pathname] ?? '课题组资产台账'
+  const title = location.pathname.startsWith('/reports/') ? '周报编辑' : TITLES[location.pathname] ?? '页屿'
   const initial = (user?.name ?? '?').trim().slice(0, 1)
 
   return (
@@ -61,8 +61,8 @@ function Shell({ children }: { children: ReactNode }) {
         <div className="brand">
           <img className="brand-logo" src={logoUrl} alt="" />
           <span className="brand-text">
-            课题组资产台账
-            <small>固定资产 · 图文周报</small>
+            页屿
+            <small>台账 · 周报 · 留痕</small>
           </span>
         </div>
 

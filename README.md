@@ -1,12 +1,14 @@
-# lab-asset-hub · 课题组资产台账与图文周报
+# 页屿 · Yeyu
 
-内网自建的小型管理工具：把**课题组固定资产台账**和**每周图文周报**放在一个应用里，一台服务器 + 一个桌面客户端就能跑起来。
+内网自建的小型管理工具：一个应用同时管**登记类台账**和**周期性图文汇报**——台账记"有什么、归谁、去哪了"，汇报按模版逐节记录"这段时间做了什么"。一套服务端 + 一个桌面客户端即可跑起来，不依赖任何外部服务。
+
+设计上不绑定具体行业：**台账的列是固定的**，**汇报的小节由管理员上传的模版决定**，所以实验室记录仪器、车间登记设备、行政组统计物料与周报，用的都是同一套东西。
 
 - 服务端：Node.js 24 + Fastify 4 + Prisma 5 / **SQLite 单文件**（无需另装数据库），端口 4000。
 - 客户端：Electron 33 + React 18 + Vite，Windows / macOS 免签名安装包。
 - 形态：内网私有部署，账号由管理员审批；所有写操作落审计日志。
 
-## 周报模版与提交截止
+## 汇报模版与提交截止（以周报为例）
 
 - **模版**：管理员在「模版与截止」页上传 `.docx` 或 `.md`，系统按 **Word 标题 1/2/3 样式**（或 Markdown 的 `##`）识别小节，小节之间的正文作为填写提示。上传后每人写周报时**按小节逐节填写**，缺任何一节都无法提交（会明确提示《小节名》未填写）。
 - **截止时间**：全局规则「每周几 HH:mm」+ **单周覆盖**（放假顺延只改那一周，可写原因）。工作台与编辑器都会显示本轮截止时间及其来源（规则/覆盖）。
@@ -18,7 +20,7 @@
 ## 目录结构
 
 ```
-lab-asset-hub/
+yeyu/
 ├── shared/                  # 跨端共享：DTO 类型、zod 校验、枚举与文案、ISO 周工具
 ├── server/                  # 服务端（Fastify + Prisma）
 │   ├── prisma/
@@ -98,12 +100,15 @@ pnpm dev                                # 服务端 4000 + Vite 5173 + Electron 
 
 ## 构建产物
 
-打包配置在 `desktop/electron-builder.yml`（`appId=com.lab.assethub`、`productName=LabAssetHub`、`identity: null` 免签名），产物输出到 `desktop/release/`：
+打包配置在 `desktop/electron-builder.yml`（`appId=com.yeyu.desktop`、`productName=页屿`、`identity: null` 免签名），产物输出到 `desktop/release/`：
 
 | 平台 | 产物 |
 | --- | --- |
-| macOS | `release/lab-asset-hub-0.1.0-mac-arm64.dmg`（实测 94MB）；可执行目录 `release/mac-arm64/LabAssetHub.app`（`--dir` 快验，实测 233MB、arm64） |
-| Windows | `release/lab-asset-hub-0.1.0-win-x64-setup.exe`（NSIS，实测 78MB，macOS 上交叉构建通过；可改安装路径、创建「课题组资产台账」快捷方式） |
+| macOS | `release/yeyu-0.1.0-mac-arm64.dmg`（实测 94MB）；可执行目录 `release/mac-arm64/页屿.app`（`--dir` 快验） |
+| Windows | `release/yeyu-0.1.0-win-x64-setup.exe`（NSIS，实测 78MB，macOS 上交叉构建通过；可改安装路径、创建「页屿」快捷方式） |
+
+> 打包产物已实测：解包后的 `页屿.app` 能正常启动、以 `file://` 加载界面、读取 userData 里的会话并直接进入工作台。
+> 注意：若从终端启动时环境里有 `ELECTRON_RUN_AS_NODE=1`（某些 IDE/工具链会注入），应用会以 Node 模式跑主进程并静默退出；`pnpm dev` 已自动剥离，手动启动打包版时用 `env -u ELECTRON_RUN_AS_NODE` 包一层即可。
 
 免签名意味着：macOS 首次打开要「右键 → 打开」或 `xattr -cr`，Windows 首次运行会遇 SmartScreen「仍要运行」。
 完整打包、内网镜像、pnpm strictDepBuilds 的说明见 [docs/部署与使用.md](docs/部署与使用.md) 第 5 节。
@@ -113,7 +118,7 @@ pnpm dev                                # 服务端 4000 + Vite 5173 + Electron 
 ## 接口文档
 
 **`docs/API.md` 是冻结的接口契约**，也是并行开发的唯一真相：端点、权限、错误码、DTO 形状、审计要求都写在这里。
-服务端用 `@lab/shared` 的 zod schema 校验入参，错误统一 `{ error: { code, message, details? } }`，列表统一 `{ items, total, page, pageSize }`。
+服务端用 `@yeyu/shared` 的 zod schema 校验入参，错误统一 `{ error: { code, message, details? } }`，列表统一 `{ items, total, page, pageSize }`。
 健康检查：`GET /api/health` → `{ "ok": true, "at": "<ISO>" }`。
 
 ---

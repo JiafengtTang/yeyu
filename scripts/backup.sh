@@ -32,7 +32,7 @@ KEEP="${KEEP:-14}"
 mkdir -p "$OUT_DIR"
 OUT_DIR="$(cd "$OUT_DIR" && pwd)"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-ARCHIVE="$OUT_DIR/lab-asset-hub-backup-$STAMP.tar.gz"
+ARCHIVE="$OUT_DIR/yeyu-backup-$STAMP.tar.gz"
 
 DB_FILE="${DB_FILE:-$ROOT/server/prisma/dev.db}"
 UPLOAD_DIR="${UPLOAD_DIR:-$ROOT/server/uploads}"
@@ -75,7 +75,7 @@ echo "[backup] 完成：${ARCHIVE}（$(du -h "$ARCHIVE" | cut -f1)，数据库 $
 
 if [ "$KEEP" != "0" ]; then
   # 只清理输出目录里本脚本产生的归档（macOS 自带 bash 3.2 没有 mapfile，这里用管道读取）
-  ls -1t "$OUT_DIR"/lab-asset-hub-backup-*.tar.gz 2>/dev/null | tail -n +$((KEEP + 1)) | while IFS= read -r f; do
+  ls -1t "$OUT_DIR"/yeyu-backup-*.tar.gz 2>/dev/null | tail -n +$((KEEP + 1)) | while IFS= read -r f; do
     echo "[backup] 清理旧备份：$f"
     rm -f "$f"
   done

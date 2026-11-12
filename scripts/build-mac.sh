@@ -37,9 +37,9 @@ du -sh release/mac*/*.app 2>/dev/null || true
 cat <<'TIP'
 
 免签名安装提示（无 Apple Developer ID，产物未签名未公证）：
-  1. 把 release/lab-asset-hub-<版本>-mac-<arch>.dmg 拷到目标 Mac，双击挂载后把 App 拖进「应用程序」。
+  1. 把 release/yeyu-<版本>-mac-<arch>.dmg 拷到目标 Mac，双击挂载后把 App 拖进「应用程序」。
   2. 首次启动被拦「无法验证开发者 / 已损坏」时，任选其一：
-       /usr/bin/xattr -cr /Applications/LabAssetHub.app
+       /usr/bin/xattr -cr /Applications/Yeyu.app
        或 在 Finder 里右键 App → 打开 → 再次确认「打开」
-  3. 本机自测（未签名、未隔离）直接 open release/mac-<arch>/LabAssetHub.app 即可。
+  3. 本机自测（未签名、未隔离）直接 open release/mac-<arch>/Yeyu.app 即可。
 TIP

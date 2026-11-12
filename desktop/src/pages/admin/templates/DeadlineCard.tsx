@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { DeadlineDTO } from '@lab/shared'
+import type { DeadlineDTO } from '@yeyu/shared'
 import { formatDateTime } from '../../../api/client'
 import { Badge, Button, Card, Field, Input, Select, Spinner, useToast } from '../../../ui'
 import { WEEKDAY_LABELS, deadlineSourceLabel, fromDateTimeLocalValue, toDateTimeLocalValue } from '../../reports/deadline'

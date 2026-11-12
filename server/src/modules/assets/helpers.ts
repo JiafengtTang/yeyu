@@ -1,6 +1,6 @@
 import { z, type ZodTypeAny } from 'zod'
 import type { Prisma } from '@prisma/client'
-import type { AssetQuery } from '@lab/shared'
+import type { AssetQuery } from '@yeyu/shared'
 import { AppError } from '../../lib/errors.js'
 
 export function parseInput<T extends ZodTypeAny>(schema: T, value: unknown): z.infer<T> {

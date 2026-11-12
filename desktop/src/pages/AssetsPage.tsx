@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { AssetDTO, ListResult } from '@lab/shared'
+import type { AssetDTO, ListResult } from '@yeyu/shared'
 import { api, apiDownload, apiErrorMessage, apiForm } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
 import { Button, Modal, useToast } from '../ui'

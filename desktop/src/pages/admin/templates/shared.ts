@@ -1,4 +1,4 @@
-import type { ListResult } from '@lab/shared'
+import type { ListResult } from '@yeyu/shared'
 
 export interface DeadlineOverrideItem {
   week: string

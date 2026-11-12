@@ -63,8 +63,8 @@ export default function LoginPage() {
           <div className="auth-aside-brand">
             <img className="auth-logo" src={logoUrl} alt="" />
             <span>
-              <strong>课题组资产台账</strong>
-              <small>固定资产 · 图文周报</small>
+              <strong>页屿</strong>
+              <small>台账 · 周报 · 留痕</small>
             </span>
           </div>
 

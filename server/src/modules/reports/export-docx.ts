@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { AlignmentType, Document, HeadingLevel, ImageRun, Packer, Paragraph, TextRun } from 'docx'
-import { REPORT_STATUS_LABEL } from '@lab/shared'
-import type { ReportDTO } from '@lab/shared'
+import { REPORT_STATUS_LABEL } from '@yeyu/shared'
+import type { ReportDTO } from '@yeyu/shared'
 import { prisma } from '../../lib/prisma'
 import { mediaAbsPath } from '../../lib/storage'
 

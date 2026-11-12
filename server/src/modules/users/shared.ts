@@ -1,4 +1,4 @@
-import type { Role, UserDTO, UserStatus } from '@lab/shared'
+import type { Role, UserDTO, UserStatus } from '@yeyu/shared'
 import type { ZodType } from 'zod'
 import { AppError } from '../../lib/errors.js'
 import { prisma } from '../../lib/prisma.js'

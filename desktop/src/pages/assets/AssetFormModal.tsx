@@ -6,7 +6,7 @@ import {
   type AssetDTO,
   type AssetInput,
   type AssetStatus
-} from '@lab/shared'
+} from '@yeyu/shared'
 import { api, apiErrorMessage } from '../../api/client'
 import { Button, Field, Input, Modal, Select, Textarea, useToast } from '../../ui'
 import { AssetAttachments } from './AssetAttachments'

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { formatMoney, type AssetDTO, type BorrowDTO } from '@lab/shared'
+import { formatMoney, type AssetDTO, type BorrowDTO } from '@yeyu/shared'
 import { api, apiErrorMessage } from '../../api/client'
 import { Button, Field, Input, Modal, Select, Textarea, useToast } from '../../ui'
 import type { OwnerOption } from './shared'
