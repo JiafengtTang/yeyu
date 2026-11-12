@@ -18,18 +18,17 @@ interface NavItem {
   to: string
   label: string
   icon: IconName
-  accent: string
   admin?: boolean
   end?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/', label: '工作台', icon: 'dashboard', accent: 'blue', end: true },
-  { to: '/assets', label: '资产台账', icon: 'layers', accent: 'teal' },
-  { to: '/reports', label: '我的周报', icon: 'file', accent: 'violet' },
-  { to: '/reviews', label: '周报审阅', icon: 'checkSquare', accent: 'amber', admin: true },
-  { to: '/admin/users', label: '用户与权限', icon: 'users', accent: 'cyan', admin: true },
-  { to: '/admin/templates', label: '模版与截止', icon: 'sliders', accent: 'rose', admin: true }
+  { to: '/', label: '工作台', icon: 'dashboard', end: true },
+  { to: '/assets', label: '资产台账', icon: 'layers' },
+  { to: '/reports', label: '我的周报', icon: 'file' },
+  { to: '/reviews', label: '周报审阅', icon: 'checkSquare', admin: true },
+  { to: '/admin/users', label: '用户与权限', icon: 'users', admin: true },
+  { to: '/admin/templates', label: '模版与截止', icon: 'sliders', admin: true }
 ]
 
 const TITLES: Record<string, string> = {
@@ -68,14 +67,9 @@ function Shell({ children }: { children: ReactNode }) {
 
         <nav className="nav">
           {NAV_ITEMS.filter((item) => !item.admin || isAdmin).map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}
-            >
-              <span className={'nav-icon nav-icon-' + item.accent}>
-                <Icon name={item.icon} size={15} strokeWidth={1.9} />
+            <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
+              <span className="nav-icon">
+                <Icon name={item.icon} size={15} strokeWidth={1.8} />
               </span>
               <span className="nav-label">{item.label}</span>
             </NavLink>
@@ -89,19 +83,17 @@ function Shell({ children }: { children: ReactNode }) {
             <small>{isAdmin ? '管理员' : '成员'}</small>
           </span>
           <button className="icon-btn sidebar-logout" onClick={logout} title="退出登录" aria-label="退出登录">
-            <Icon name="logout" size={16} />
+            <Icon name="logout" size={15} />
           </button>
         </div>
       </aside>
 
       <div className="main">
         <header className="topbar">
-          <div className="topbar-left">
-            <span className="topbar-title">{title}</span>
-          </div>
+          <span className="topbar-title">{title}</span>
           <div className="topbar-user">
-            <span className="chip">{user?.phone}</span>
-            {isAdmin ? <span className="chip chip-brand">管理员</span> : null}
+            <span>{user?.phone}</span>
+            <span className="topbar-role">{isAdmin ? '管理员' : '成员'}</span>
           </div>
         </header>
         <main className="content">{children}</main>

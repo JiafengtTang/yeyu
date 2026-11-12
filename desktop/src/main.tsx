@@ -7,6 +7,7 @@ import { ToastProvider } from './ui'
 import { initClient } from './api/client'
 import './styles.css'
 import './theme-v3.css'
+import './theme-v4.css'
 
 async function bootstrap(): Promise<void> {
   await initClient()
