@@ -128,13 +128,14 @@ pnpm dev                                # 服务端 4000 + Vite 5173 + Electron 
 | 模块 | 能力 |
 | --- | --- |
 | 账号与权限 | 手机号注册（默认 `PENDING` 待审批）、登录发 7 天 JWT、管理员审批/禁用/改角色/重置密码；接口 `/api/auth/*`、`/api/users*` |
+| 成员分组 | 管理员建组/改名/删组（删组只把成员移回未分组，不删账号），成员行内指派小组，按小组筛选账号；一人一组；接口 `/api/groups*`，`PATCH /api/users/:id` 的 `groupId` |
 | 资产台账 | 增删改查（行级权限：成员只能改自己负责的资产）、关键词/类别/状态/责任人筛选、分页排序、Excel 导入导出与模板、附件上传（照片/发票/合同）与鉴权预览、借用/归还、盘点批次与差异表、审计日志；接口 `/api/assets*`、`/api/borrows*`、`/api/inventory/*`、`/api/audit` |
 | 图文周报 | ISO 周键 `YYYY-Www`，一人一周一份；TipTap 富文本 + 图片（存 `<img src="media:<id>">`，渲染时换带 token 的真实地址）；草稿自动保存、提交、管理员通过/退回、评论串、导出 Word（`docx`）与 PDF（Electron `printPdf`）；接口 `/api/reports*` |
 | 媒体 | `POST /api/media` 上传（≤20MB，白名单 MIME）、`GET /api/media/:id` 鉴权预览、`DELETE` 上传者或管理员 |
 | 运维 | 一键 seed 首个管理员、Docker Compose 部署、`scripts/backup.sh`/`restore.sh` 备份恢复、免签名打包脚本 |
 
-> 上述能力以 `docs/API.md` 为准：后端 `server/src/modules/**` 与前端 `desktop/src/pages/**` 由四个并行子任务分别实现，
-> 合并后接口与页面才齐全；`/api/health` 与媒体接口（`lib/storage.ts`）由公共层直接提供，始终可用。
+> 上述能力以 `docs/API.md` 为准：每个模块在 `server/src/modules/<模块>` 与 `desktop/src/pages/` 下成对实现，
+> `/api/health` 与媒体接口（`lib/storage.ts`）由公共层提供。
 
 ## 未做项（明确的边界）
 
@@ -150,4 +151,7 @@ pnpm dev                                # 服务端 4000 + Vite 5173 + Electron 
 
 ## 许可与归属
 
-内部课题使用，未发布到公共仓库。
+- 代码：仓库目前**未附开源许可证**（默认保留所有权利）。如需对外复用，可自行采用 MIT / Apache-2.0。
+- 登录页背景照片：来自 [Unsplash](https://unsplash.com)（Unsplash License，可商用、无需署名），
+  文件为 `desktop/src/assets/login-bg.jpg`，本地 900×1300、约 180KB；替换同名文件即可换成自己的照片。
+- 界面图标与应用图标：本项目自制（Pillow 生成 `desktop/build/icon.*`）。
