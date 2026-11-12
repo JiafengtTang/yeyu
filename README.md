@@ -44,6 +44,15 @@ lab-asset-hub/
 
 ---
 
+## 仓库里没有什么
+
+- **不含任何真实的资产台账、周报内容或周报模版**：数据库（`server/prisma/*.db`）与上传目录（`uploads/`）都在 `.gitignore` 里，从未进入 git 历史。
+- 代码与文档中的手机号（`13800000000` 等）均为**演示占位值**；seed 可用 `SEED_ADMIN_PHONE` / `SEED_ADMIN_NAME` / `SEED_ADMIN_PASSWORD` 覆盖。
+- `SEED_DEMO=1` 时生成的示例资产为虚构数据。
+- 真实数据只存在于你自己的运行环境：`server/prisma/dev.db` 与 `server/uploads/<年-月>/`。
+
+---
+
 ## 快速开始（本机开发）
 
 前置：Node.js 20+（实测 24）、pnpm 11。
@@ -54,7 +63,8 @@ lab-asset-hub/
 pnpm start            # 等价于 bash scripts/start-local.sh
 ```
 
-登录：`13800000000` / `Admin@123456`。关窗口或 `Ctrl+C` 结束全部进程。
+登录：`13800000000` / `Admin@123456`（**本地演示默认值**，由 `SEED_ADMIN_PHONE` / `SEED_ADMIN_PASSWORD` 覆盖）。
+关窗口或 `Ctrl+C` 结束全部进程。
 
 手工分步（理解每一层用）：
 

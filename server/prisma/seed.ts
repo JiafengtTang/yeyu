@@ -1,9 +1,11 @@
 /**
  * 初始化数据脚本（幂等，可重复执行）
  *
- * 1. 创建首个管理员：手机号 13800000000，密码取 SEED_ADMIN_PASSWORD，缺省 Admin@123456；
- *    已存在则跳过（不会覆盖密码、角色或状态）。
+ * 1. 创建首个管理员：手机号取 SEED_ADMIN_PHONE（缺省 13800000000 仅作本地演示），
+ *    姓名取 SEED_ADMIN_NAME，密码取 SEED_ADMIN_PASSWORD（缺省 Admin@123456 仅作本地演示）；
+ *    已存在则跳过（不会覆盖密码、角色或状态）。**生产环境必须设置这三个变量。**
  * 2. SEED_DEMO=1 时额外写入 5 条示例资产（按 code upsert，重复执行不会翻倍）。
+ *    示例资产为虚构数据，不含任何真实资产信息。
  *
  * 用法：
  *   cd server && pnpm db:seed                                   # 读 server/.env 的 DATABASE_URL
@@ -17,9 +19,10 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-const ADMIN_PHONE = '13800000000'
-const ADMIN_NAME = '系统管理员'
-const DEFAULT_ADMIN_PASSWORD = 'Admin@123456'
+// 缺省值仅用于本地演示；生产部署请通过环境变量覆盖，避免使用默认账号
+const ADMIN_PHONE = process.env.SEED_ADMIN_PHONE ?? '13800000000'
+const ADMIN_NAME = process.env.SEED_ADMIN_NAME ?? '系统管理员'
+const DEFAULT_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? 'Admin@123456'
 
 interface DemoAsset {
   code: string

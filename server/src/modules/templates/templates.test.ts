@@ -244,7 +244,7 @@ describe('模版上传与解析', () => {
       '</w:styles>'
     const docx = await buildDocx(
       [
-        { text: '唐甲锋周报', style: '1' },
+        { text: '示例周报', style: '1' },
         { text: '研究进展（科研的进展记录，数据的分析报告）', style: '2' },
         { text: '科研进展' },
         { text: '前两周其他事务', style: '2' },
