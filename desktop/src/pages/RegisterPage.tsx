@@ -57,11 +57,9 @@ export default function RegisterPage() {
       <div className="auth-scene-tint" aria-hidden="true" />
 
       <header className="auth-scene-brand">
-        <img className="auth-scene-logo" src={logoUrl} alt="" />
-        <span>
-          <strong>页屿</strong>
-          <small>台账 · 周报 · 留痕</small>
-        </span>
+        <img className="auth-brand-logo" src={logoUrl} alt="" />
+        <h1 className="auth-brand-name">页屿</h1>
+        <p className="auth-brand-sub">台账 · 周报 · 留痕</p>
       </header>
 
       <div className="auth-panel auth-panel-register">

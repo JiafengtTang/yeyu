@@ -3,8 +3,8 @@
    真实照片满铺 + 缓慢推镜 + 磨砂玻璃面板与输入框
    ───────────────────────────────────────────── */
 .auth-scene {
-  position: relative;
-  height: 100%;
+  position: fixed;
+  inset: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -40,36 +40,80 @@
   pointer-events: none;
 }
 
+/* 品牌：顶部居中（QQ / 微信 式），名字用流光艺术字 */
 .auth-scene-brand {
   position: absolute;
   z-index: 4;
-  top: 14px;
-  left: 14px;
+  top: 16px;
+  left: 0;
+  right: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  color: #fff;
+  gap: 5px;
+  pointer-events: none;
 }
-.auth-scene-logo {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.75);
+.auth-brand-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  box-shadow:
+    0 10px 22px -12px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.14);
+  animation: brandFloat 6.5s ease-in-out infinite;
+  will-change: transform;
 }
-.auth-scene-brand strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+@keyframes brandFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
-.auth-scene-brand small {
-  display: block;
-  margin-top: 1px;
+
+.auth-brand-name {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  background-image: linear-gradient(
+    100deg,
+    rgba(206, 224, 255, 0.82) 0%,
+    #ffffff 20%,
+    #ffe3bd 40%,
+    #ffffff 58%,
+    rgba(206, 224, 255, 0.82) 78%,
+    rgba(206, 224, 255, 0.82) 100%
+  );
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 14px rgba(128, 176, 255, 0.5));
+  animation: brandShine 7s linear infinite;
+  will-change: background-position;
+}
+@keyframes brandShine {
+  from { background-position: 0% 50%; }
+  to { background-position: 260% 50%; }
+}
+
+.auth-brand-sub {
+  margin: 0;
   font-size: 10px;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.74);
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.30em;
+  text-indent: 0.30em;
+  color: rgba(255, 255, 255, 0.66);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
+  animation: brandSubPulse 5.5s ease-in-out infinite;
+}
+@keyframes brandSubPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-brand-logo, .auth-brand-name, .auth-brand-sub { animation: none; }
 }
 
 /* 磨砂玻璃面板 */
@@ -86,7 +130,7 @@
   box-shadow:
     0 24px 48px -26px rgba(0, 0, 0, 0.75),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  max-height: calc(100% - 58px);
+  max-height: calc(100% - 104px);
   overflow-y: auto;
 }
 .auth-panel .form { display: flex; flex-direction: column; gap: 9px; }
