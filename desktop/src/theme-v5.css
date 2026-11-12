@@ -80,4 +80,5 @@ table.table td:nth-child(2), table.table td:nth-child(9) { white-space: normal; 
   .auth-main { padding: 22px 20px; gap: 12px; }
   .auth-main h1 { font-size: 19px; }
   .auth-card { width: min(420px, 100%); padding: 22px 20px; }
+  .auth-page .auth-card { max-height: calc(100vh - 24px); overflow-y: auto; }
 }

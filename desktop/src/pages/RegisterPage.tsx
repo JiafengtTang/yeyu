@@ -50,7 +50,7 @@ export default function RegisterPage() {
   if (submitted) {
     return (
       <div className="auth-page">
-        <div className="auth-card auth-card-minimal">
+        <div className="auth-card">
           <div>
             <h1>注册已提交</h1>
             <p className="muted">已提交，等待管理员审批。审批通过后即可使用手机号登录。</p>
@@ -68,7 +68,7 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card auth-card-minimal">
+      <div className="auth-card">
         <div>
           <h1>注册账号</h1>
           <p className="muted">注册后需管理员审批，审批通过前无法登录。</p>
