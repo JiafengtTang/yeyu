@@ -8,6 +8,7 @@ import { initClient } from './api/client'
 import './styles.css'
 import './theme-v3.css'
 import './theme-v5.css'
+import './theme-v6.css'
 
 async function bootstrap(): Promise<void> {
   await initClient()

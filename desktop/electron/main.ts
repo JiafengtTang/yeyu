@@ -11,7 +11,7 @@ interface AppConfig {
 }
 
 const DEFAULT_CONFIG: AppConfig = { serverUrl: 'http://127.0.0.1:4000', sessionToken: null }
-const LOGIN_SIZE = { width: 460, height: 640 }
+const LOGIN_SIZE = { width: 400, height: 500 }
 const APP_SIZE = { width: 1360, height: 864 }
 
 const devServerArg = process.argv.find((a) => a.startsWith('--dev-server='))

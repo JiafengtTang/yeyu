@@ -1,0 +1,160 @@
+/* ─────────────────────────────────────────────
+   v6：紧凑登录窗（微信/QQ 式小窗）
+   真实照片满铺 + 缓慢推镜 + 磨砂玻璃面板与输入框
+   ───────────────────────────────────────────── */
+.auth-scene {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  background: #070d1a;
+}
+
+/* 背景照片：缓慢推镜，营造「海风在动」的呼吸感 */
+.auth-scene-bg {
+  position: absolute;
+  inset: -3%;
+  width: 106%;
+  height: 106%;
+  object-fit: cover;
+  object-position: center 42%;
+  user-select: none;
+  pointer-events: none;
+  animation: sceneKenBurns 48s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes sceneKenBurns {
+  from { transform: scale(1.02) translate3d(0, 0, 0); }
+  to { transform: scale(1.10) translate3d(-1.4%, -1.2%, 0); }
+}
+
+/* 暗化与渐层，保证白字可读、面板显色 */
+.auth-scene-tint {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(6, 12, 28, 0.28) 0%, rgba(6, 12, 28, 0) 60%),
+    linear-gradient(180deg, rgba(6, 12, 28, 0.22) 0%, rgba(6, 12, 28, 0.02) 34%, rgba(6, 12, 28, 0.34) 66%, rgba(6, 12, 28, 0.62) 100%);
+  pointer-events: none;
+}
+
+.auth-scene-brand {
+  position: absolute;
+  z-index: 4;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+}
+.auth-scene-logo {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.75);
+}
+.auth-scene-brand strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+}
+.auth-scene-brand small {
+  display: block;
+  margin-top: 1px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.74);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* 磨砂玻璃面板 */
+.auth-panel {
+  position: relative;
+  z-index: 5;
+  margin: 10px;
+  padding: 13px 13px 11px;
+  border-radius: 14px;
+  background: rgba(18, 26, 44, 0.34);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 24px 48px -26px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  max-height: calc(100% - 58px);
+  overflow-y: auto;
+}
+.auth-panel .form { display: flex; flex-direction: column; gap: 9px; }
+
+/* 输入框：透明磨砂，和背景同色系 */
+.auth-panel .input {
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #f4f7fb;
+  font-size: 13px;
+}
+.auth-panel .input::placeholder { color: rgba(255, 255, 255, 0.62); }
+.auth-panel .input:hover { border-color: rgba(255, 255, 255, 0.32); background: rgba(255, 255, 255, 0.14); }
+.auth-panel .input:focus {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(140, 180, 255, 0.85);
+  box-shadow: 0 0 0 3px rgba(96, 148, 255, 0.24);
+  color: #fff;
+}
+.auth-panel .btn { height: 38px; border-radius: 9px; }
+.auth-panel .btn-primary {
+  background: rgba(47, 111, 237, 0.92);
+  border-color: rgba(120, 165, 255, 0.55);
+  color: #fff;
+  box-shadow: 0 10px 24px -14px rgba(47, 111, 237, 0.95);
+}
+.auth-panel .btn-primary:hover { background: rgba(47, 111, 237, 1); }
+.auth-panel .field-error { font-size: 11.5px; color: #ffb4a8; }
+
+/* 底部链接 */
+.auth-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.68);
+}
+.auth-links a { color: rgba(190, 214, 255, 0.95); }
+.auth-links a:hover { color: #fff; }
+.auth-gear {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+.auth-gear:hover { color: rgba(255, 255, 255, 0.9); }
+
+.auth-server-row { display: flex; gap: 6px; margin-top: 7px; }
+.auth-server-row .input { height: 28px; font-size: 11.5px; }
+.auth-server-row .btn { height: 28px; padding: 0 9px; font-size: 11.5px; color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.25); }
+
+/* 注册窗 */
+.auth-panel-register { max-height: calc(100% - 46px); }
+.auth-panel-register .auth-panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  margin-bottom: 9px;
+}
+.auth-panel-register .muted { color: rgba(255, 255, 255, 0.62); }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-scene-bg { animation: none; }
+}

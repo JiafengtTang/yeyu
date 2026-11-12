@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { registerSchema } from '@yeyu/shared'
+import logoUrl from '../assets/logo.png'
+import bgUrl from '../assets/login-bg.jpg'
 import { apiErrorMessage } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
-import { Button, Field, Input } from '../ui'
+import { Button, Input } from '../ui'
 
 export default function RegisterPage() {
   const { register } = useAuth()
@@ -47,65 +49,63 @@ export default function RegisterPage() {
     }
   }
 
-  if (submitted) {
-    return (
-      <div className="auth-page">
-        <div className="auth-card">
-          <div>
-            <h1>注册已提交</h1>
-            <p className="muted">已提交，等待管理员审批。审批通过后即可使用手机号登录。</p>
-          </div>
-          <Button variant="primary" className="btn-block" onClick={() => navigate('/login', { replace: true })}>
-            返回登录
-          </Button>
-          <div className="auth-foot">
-            <Link to="/login">返回登录页</Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const firstError = Object.values(fieldErrors)[0] ?? ''
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div>
-          <h1>注册账号</h1>
-          <p className="muted">注册后需管理员审批，审批通过前无法登录。</p>
-        </div>
-        <form className="form" onSubmit={handleSubmit}>
-          <Field label="手机号" required error={fieldErrors.phone}>
-            <Input
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="请输入 11 位手机号"
-              inputMode="numeric"
-              maxLength={11}
-              autoComplete="username"
-            />
-          </Field>
-          <Field label="密码" required error={fieldErrors.password} hint="至少 6 位">
-            <Input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="请输入密码"
-              autoComplete="new-password"
-            />
-          </Field>
-          <Field label="姓名" required error={fieldErrors.name}>
-            <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="请输入真实姓名" />
-          </Field>
-          <Field label="邮箱" error={fieldErrors.email} hint="可选，用于接收通知">
-            <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />
-          </Field>
-          {error ? <p className="field-error">{error}</p> : null}
-          <Button type="submit" variant="primary" className="btn-block" loading={submitting}>
-            提交注册
-          </Button>
-        </form>
-        <div className="auth-foot">
-          已有账号？
+    <div className="auth-scene">
+      <img className="auth-scene-bg" src={bgUrl} alt="" aria-hidden="true" />
+      <div className="auth-scene-tint" aria-hidden="true" />
+
+      <header className="auth-scene-brand">
+        <img className="auth-scene-logo" src={logoUrl} alt="" />
+        <span>
+          <strong>页屿</strong>
+          <small>台账 · 周报 · 留痕</small>
+        </span>
+      </header>
+
+      <div className="auth-panel auth-panel-register">
+        {submitted ? (
+          <>
+            <div className="auth-panel-title">注册已提交</div>
+            <p className="muted" style={{ fontSize: 11.5, marginBottom: 10 }}>
+              等待管理员审批，通过后即可用手机号登录。
+            </p>
+            <Button variant="primary" className="btn-block" onClick={() => navigate('/login', { replace: true })}>
+              返回登录
+            </Button>
+          </>
+        ) : (
+          <>
+            <div className="auth-panel-title">注册账号</div>
+            <form className="form" onSubmit={handleSubmit}>
+              <Input
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                placeholder="手机号（11 位）"
+                inputMode="numeric"
+                maxLength={11}
+                autoComplete="username"
+              />
+              <Input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="密码（至少 6 位）"
+                autoComplete="new-password"
+              />
+              <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="姓名" />
+              <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="邮箱（可选）" />
+              {firstError ? <p className="field-error">{firstError}</p> : null}
+              {error ? <p className="field-error">{error}</p> : null}
+              <Button type="submit" variant="primary" className="btn-block" loading={submitting}>
+                提交注册
+              </Button>
+            </form>
+          </>
+        )}
+
+        <div className="auth-links">
           <Link to="/login">返回登录</Link>
         </div>
       </div>
