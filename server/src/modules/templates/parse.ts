@@ -23,6 +23,8 @@ export interface ParagraphBlock {
 }
 
 const MARKDOWN_HEADING_RE = /^(#{1,3})\s+(.+)$/
+/** 只有显式标注的段落才会成为小节提示，避免把模版正文（尤其是真实周报内容）当提示广播给所有人 */
+const HINT_MARKER_RE = /^(?:【\s*提示\s*】|\[\s*提示\s*\]|提示\s*[:：])\s*(.+)$/
 const MARKDOWN_LIST_PREFIX_RE = /^(?:[-*+]\s+|\d+[.)]\s+)/
 const MARKDOWN_NOISE_RE = /^(?:```|---|===|\|)/
 
@@ -154,9 +156,9 @@ export function blocksToDrafts(blocks: ParagraphBlock[]): Array<{ title: string;
       current = { title: block.text, hintParts: [] }
       continue
     }
-    // 纯数字/标点碎片（如 "(4"）对填写没有指导意义，别当提示
-    if (!/[\p{L}\p{N}]/u.test(block.text) || /^[\s\d()（）.、,，;；:\-]+$/.test(block.text)) continue
-    if (current) current.hintParts.push(block.text)
+    // 只有显式【提示】标记才会成为提示；正文与更深层标题一律不进提示
+    const marked = HINT_MARKER_RE.exec(block.text)?.[1]?.trim()
+    if (marked && current) current.hintParts.push(marked)
   }
   if (current) drafts.push({ title: current.title, hint: clip(current.hintParts.join(' '), MAX_HINT_LENGTH) })
   return drafts

@@ -133,7 +133,7 @@ async function uploadTemplate(opts: {
 }
 
 const MD_SOURCE =
-  '# 课题组周报\n\n## 本周进展\n在这里写完成的工作\n\n## 下周计划\n列出计划\n\n## 问题与需求\n需要协调的事项\n'
+  '# 课题组周报\n\n## 本周进展\n【提示】在这里写完成的工作\n本周实际写的内容\n\n## 下周计划\n提示：列出计划\n\n## 问题与需求\n[提示]需要协调的事项\n'
 
 beforeAll(async () => {
   await rm(UPLOAD_ROOT, { recursive: true, force: true })
@@ -211,10 +211,9 @@ describe('模版上传与解析', () => {
     const docx = await buildDocx([
       { text: '课题组周报', style: 'Heading 1' },
       { text: '本周进展', style: 'Heading 2' },
-      { text: '完成示波器校准 &amp; 电源测试' },
+      { text: '【提示】完成示波器校准 &amp; 电源测试' },
       { text: '下周计划', style: '标题 2' },
-      { text: '列出计划 &lt;待定&gt;' },
-      { text: '张'.repeat(250) },
+      { text: '【提示】列出计划 &lt;待定&gt;' + '张'.repeat(250) },
       { text: '问题与需求', outline: 1 },
       { text: '需要协调的事项' }
     ])
@@ -246,7 +245,7 @@ describe('模版上传与解析', () => {
       [
         { text: '示例周报', style: '1' },
         { text: '研究进展（科研的进展记录，数据的分析报告）', style: '2' },
-        { text: '科研进展' },
+        { text: '【提示】按方向写清本周进展' },
         { text: '前两周其他事务', style: '2' },
         { text: '(4' },
         { text: '下阶段研究计划', style: '2' },
@@ -268,9 +267,10 @@ describe('模版上传与解析', () => {
       '前两周其他事务',
       '下阶段研究计划'
     ])
-    expect(dto.sections[0]?.hint).toBe('科研进展')
+    expect(dto.sections[0]?.hint).toBe('按方向写清本周进展')
+    // 正文与更深层标题不再进入 hint
     expect(dto.sections[1]?.hint).toBe('')
-    expect(dto.sections[2]?.hint).toBe('阅读论文；')
+    expect(dto.sections[2]?.hint).toBe('')
   })
 
   it('无小节标题的 md / docx 返回 422 且提示可操作', async () => {

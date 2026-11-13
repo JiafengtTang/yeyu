@@ -81,6 +81,8 @@ export interface UserRow {
   email: string | null
   role: string
   status: string
+  groupId?: string | null
+  group?: { name: string } | null
   createdAt: Date
 }
 
@@ -92,6 +94,8 @@ export function toUserDTO(row: UserRow): UserDTO {
     email: row.email,
     role: row.role as UserDTO['role'],
     status: row.status as UserDTO['status'],
+    groupId: row.groupId ?? null,
+    groupName: row.group?.name ?? null,
     createdAt: row.createdAt.toISOString()
   }
 }
