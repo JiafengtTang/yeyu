@@ -32,6 +32,43 @@ model User {
 
   groupId String?
   group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  notes Note[]
+}
+
+/// 笔记 / 日报（仅本人可见）。日报用 kind=DAILY + day=YYYY-MM-DD 唯一标识
+model Note {
+  id          String   @id @default(cuid())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  kind        String   @default("NOTE")
+  title       String
+  day         String?
+  contentHtml String   @default("")
+  plainText   String   @default("")
+  tagsJson    String   @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  links     NoteLink[] @relation("NoteSource")
+  backlinks NoteLink[] @relation("NoteTarget")
+
+  @@unique([ownerId, day])
+  @@index([ownerId, kind])
+  @@index([ownerId, updatedAt])
+}
+
+/// 笔记里的 [[双向链接]]。targetId 为空表示目标笔记尚不存在（未解析链接）
+model NoteLink {
+  id          String  @id @default(cuid())
+  sourceId    String
+  source      Note    @relation("NoteSource", fields: [sourceId], references: [id], onDelete: Cascade)
+  targetId    String?
+  target      Note?   @relation("NoteTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  targetTitle String
+
+  @@index([sourceId])
+  @@index([targetId])
 }
 
 /// 成员分组（按研究方向/职能划分，可为空）

@@ -377,3 +377,151 @@ export function formatMoney(v: number | null | undefined): string {
   if (v === null || v === undefined || Number.isNaN(v)) return '-'
   return v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
+
+/* ────────────────────────────── 笔记 / 日报 ────────────────────────────── */
+
+export type NoteKind = 'NOTE' | 'DAILY'
+export const NOTE_KINDS: NoteKind[] = ['NOTE', 'DAILY']
+
+export interface NoteSummaryDTO {
+  id: string
+  kind: NoteKind
+  title: string
+  day: string | null
+  excerpt: string
+  tags: string[]
+  updatedAt: string
+}
+
+export interface NoteLinkRefDTO {
+  title: string
+  noteId: string | null
+}
+
+export interface NoteBacklinkDTO {
+  id: string
+  title: string
+  kind: NoteKind
+  day: string | null
+}
+
+export interface NoteDTO {
+  id: string
+  kind: NoteKind
+  title: string
+  day: string | null
+  contentHtml: string
+  tags: string[]
+  links: NoteLinkRefDTO[]
+  backlinks: NoteBacklinkDTO[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface NoteCalendarDayDTO {
+  day: string
+  hasContent: boolean
+}
+
+export interface NoteGraphDTO {
+  nodes: Array<{ id: string; title: string; kind: NoteKind; day: string | null }>
+  edges: Array<{ source: string; target: string }>
+}
+
+export const noteInputSchema = z.object({
+  kind: z.enum(['NOTE', 'DAILY']).optional(),
+  title: z.string().trim().max(120, '标题最多 120 字').optional(),
+  day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日期格式应为 YYYY-MM-DD').optional(),
+  contentHtml: z.string().max(200_000, '内容过长').optional()
+})
+
+export const noteUpdateSchema = z.object({
+  title: z.string().trim().min(1, '标题不能为空').max(120, '标题最多 120 字').optional(),
+  contentHtml: z.string().max(200_000, '内容过长').optional()
+})
+
+export const noteQuerySchema = z.object({
+  kind: z.enum(['NOTE', 'DAILY']).optional(),
+  q: z.string().max(80).optional(),
+  tag: z.string().max(24).optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  pageSize: z.coerce.number().int().min(1).max(100).optional()
+})
+
+const NOTE_ENTITY_MAP: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }
+
+/** HTML → 纯文本（用于搜索、链接与标签抽取） */
+export function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|li|h[1-6]|blockquote|pre)>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&#(\d+);/g, (_m: string, code: string) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_m: string, code: string) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&(amp|lt|gt|quot|apos|nbsp);/g, (m: string, name: string) => NOTE_ENTITY_MAP[name] ?? m)
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
+/** 抽取 [[双向链接]] 的目标标题（去重、保持出现顺序） */
+export function extractWikilinks(text: string): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  const re = /\[\[([^\[\]]{1,64})\]\]/g
+  let match: RegExpExecArray | null
+  while ((match = re.exec(text)) !== null) {
+    const title = (match[1] ?? '').trim()
+    if (!title) continue
+    const key = title.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(title)
+  }
+  return out
+}
+
+/** 抽取 #标签（前面须为空白/行首/括号，避免把 a#b 当标签） */
+export function extractTags(text: string): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  const re = /(?:^|[\s(（\[])#([\p{L}\p{N}_-]{1,24})/gu
+  let match: RegExpExecArray | null
+  while ((match = re.exec(text)) !== null) {
+    const tag = match[1]
+    if (!tag) continue
+    const key = tag.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(tag)
+  }
+  return out
+}
+
+/** 极简 HTML → Markdown（导出用） */
+export function htmlToMarkdown(html: string): string {
+  const decode = (text: string): string =>
+    text
+      .replace(/&#(\d+);/g, (_m: string, code: string) => String.fromCodePoint(Number(code)))
+      .replace(/&(amp|lt|gt|quot|apos|nbsp);/g, (m: string, name: string) => NOTE_ENTITY_MAP[name] ?? m)
+
+  const md = html
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
+    .replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, (_m: string, t: string) => '\n# ' + decode(t.replace(/<[^>]+>/g, '')) + '\n')
+    .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, (_m: string, t: string) => '\n## ' + decode(t.replace(/<[^>]+>/g, '')) + '\n')
+    .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, (_m: string, t: string) => '\n### ' + decode(t.replace(/<[^>]+>/g, '')) + '\n')
+    .replace(/<h4[^>]*>([\s\S]*?)<\/h4>/gi, (_m: string, t: string) => '\n#### ' + decode(t.replace(/<[^>]+>/g, '')) + '\n')
+    .replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, (_m: string, t: string) => '- ' + decode(t.replace(/<[^>]+>/g, '')) + '\n')
+    .replace(/<img[^>]*src="media:([^"]+)"[^>]*>/gi, (_m: string, id: string) => '\n![图片](media:' + id + ')\n')
+    .replace(/<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (_m: string, href: string, t: string) => '[' + decode(t.replace(/<[^>]+>/g, '')) + '](' + href + ')')
+    .replace(/<(strong|b)[^>]*>([\s\S]*?)<\/\1>/gi, (_m: string, _tag: string, t: string) => '**' + decode(t.replace(/<[^>]+>/g, '')) + '**')
+    .replace(/<(em|i)[^>]*>([\s\S]*?)<\/\1>/gi, (_m: string, _tag: string, t: string) => '*' + decode(t.replace(/<[^>]+>/g, '')) + '*')
+    .replace(/<code[^>]*>([\s\S]*?)<\/code>/gi, (_m: string, t: string) => '`' + decode(t.replace(/<[^>]+>/g, '')) + '`')
+    .replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi, (_m: string, t: string) => '\n> ' + decode(t.replace(/<[^>]+>/g, '')) + '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div)>/gi, '\n\n')
+    .replace(/<[^>]+>/g, '')
+
+  return decode(md).replace(/\n{3,}/g, '\n\n').trim() + '\n'
+}

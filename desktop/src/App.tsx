@@ -11,6 +11,7 @@ import AssetsPage from './pages/AssetsPage'
 import ReportsPage from './pages/ReportsPage'
 import ReportEditorPage from './pages/ReportEditorPage'
 import ReviewPage from './pages/ReviewPage'
+import NotesPage from './pages/NotesPage'
 import AdminUsersPage from './pages/AdminUsersPage'
 import TemplatesPage from './pages/admin/TemplatesPage'
 
@@ -27,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/', label: '工作台', icon: 'dashboard', accent: 'blue', end: true },
   { to: '/assets', label: '资产台账', icon: 'layers', accent: 'teal' },
   { to: '/reports', label: '我的周报', icon: 'file', accent: 'violet' },
+  { to: '/notes', label: '笔记', icon: 'sparkles', accent: 'teal' },
   { to: '/reviews', label: '周报审阅', icon: 'checkSquare', accent: 'amber', admin: true },
   { to: '/admin/users', label: '用户与权限', icon: 'users', accent: 'cyan', admin: true },
   { to: '/admin/templates', label: '模版与截止', icon: 'sliders', accent: 'rose', admin: true }
@@ -36,6 +38,7 @@ const TITLES: Record<string, string> = {
   '/': '工作台',
   '/assets': '资产台账',
   '/reports': '我的周报',
+  '/notes': '笔记与日报',
   '/reviews': '周报审阅',
   '/admin/users': '用户与权限',
   '/admin/templates': '模版与截止'
@@ -127,6 +130,7 @@ export default function App() {
       <Route path="/assets" element={<AuthedLayout><AssetsPage /></AuthedLayout>} />
       <Route path="/reports" element={<AuthedLayout><ReportsPage /></AuthedLayout>} />
       <Route path="/reports/:id" element={<AuthedLayout><ReportEditorPage /></AuthedLayout>} />
+      <Route path="/notes" element={<AuthedLayout><NotesPage /></AuthedLayout>} />
       <Route path="/reviews" element={<AuthedLayout adminOnly><ReviewPage /></AuthedLayout>} />
       <Route path="/admin/users" element={<AuthedLayout adminOnly><AdminUsersPage /></AuthedLayout>} />
       <Route path="/admin/templates" element={<AuthedLayout adminOnly><TemplatesPage /></AuthedLayout>} />

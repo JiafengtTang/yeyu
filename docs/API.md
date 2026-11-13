@@ -191,3 +191,34 @@
 - 写操作（建组/改名/删组）落审计日志：`entityType = "GROUP"`，action 分别 CREATE / UPDATE / DELETE。
 - 约束：小组名 1–32 字且全局唯一；说明 ≤100 字。
 
+
+
+## 2B. 笔记与日报（仅本人可见）
+
+Obsidian 风格的轻量笔记系统：日报按天归档，另有自由笔记；支持 `[[双向链接]]`、`#标签`、全文搜索、日历与关系图谱。
+所有接口只返回当前登录者自己的数据，访问他人笔记一律 404。
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/notes?kind=&q=&tag=&page=&pageSize=` | 列表（`kind` = `NOTE`/`DAILY`；`q` 搜标题与正文；`tag` 按标签） |
+| POST | `/api/notes` | 新建：`{ kind?, title?, day?, contentHtml? }`；`kind=DAILY` 幂等返回当天日报 |
+| GET | `/api/notes/daily?day=YYYY-MM-DD` | 取当天日报，没有则创建（标题即日期） |
+| GET | `/api/notes/:id` | 详情，含 `links`（出链）、`backlinks`（反链）、`tags` |
+| PATCH | `/api/notes/:id` | 改标题 / 正文；保存时重算纯文本、标签与链接 |
+| DELETE | `/api/notes/:id` | 删除（连带其链接记录） |
+| GET | `/api/notes/tags` | 标签及笔记数 |
+| GET | `/api/notes/calendar?month=YYYY-MM` | 该月日报：`[{ day, hasContent }]` |
+| GET | `/api/notes/graph` | 关系图：`{ nodes, edges }`（只含已解析的链接） |
+| GET | `/api/notes/:id/markdown` | 导出 `.md`（`text/markdown`） |
+
+**解析规则**（保存时执行，见 `shared/src/index.ts`）
+
+- `[[标题]]` → 指向标题完全相同的笔记；目标不存在时 `noteId = null`，界面上标「未创建」。
+  之后创建同名笔记或把某条笔记改名成该标题时，会**自动回填**这些悬空链接。
+- `#标签`（前后须为空白或行首/括号）→ 存入 `tagsJson`，列表可按标签筛选。
+- `plainText` 由 `htmlToPlainText` 生成，供搜索与抽取使用。
+- 日报的 `day` 在 `(ownerId, day)` 上唯一，同一天不会出现两条日报。
+
+**数据模型**：`Note`（`kind` / `title` / `day` / `contentHtml` / `plainText` / `tagsJson`）
+与 `NoteLink`（`sourceId` / `targetId` / `targetTitle`）。
+
