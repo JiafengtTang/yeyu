@@ -11,6 +11,8 @@ interface RichEditorProps {
   value: string
   editable: boolean
   onChange(html: string): void
+  /** 空内容时的占位提示；不传则用通用文案 */
+  placeholder?: string
 }
 
 interface ToolButtonProps {
@@ -29,7 +31,7 @@ function ToolButton({ label, title, active = false, disabled = false, onClick }:
   )
 }
 
-export function RichEditor({ value, editable, onChange }: RichEditorProps) {
+export function RichEditor({ value, editable, onChange, placeholder }: RichEditorProps) {
   const toast = useToast()
   const fileRef = useRef<HTMLInputElement | null>(null)
   const editorRef = useRef<Editor | null>(null)
@@ -62,7 +64,9 @@ export function RichEditor({ value, editable, onChange }: RichEditorProps) {
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Image.configure({ inline: false, allowBase64: false }),
-      Placeholder.configure({ placeholder: '本周进展、遇到的问题、下周计划…（可直接粘贴或拖拽图片）' })
+      Placeholder.configure({
+        placeholder: placeholder ?? '本周进展、遇到的问题、下周计划…（可直接粘贴或拖拽图片）'
+      })
     ],
     content: value,
     onCreate: () => {

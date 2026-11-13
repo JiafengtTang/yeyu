@@ -29,7 +29,12 @@ export function SectionedEditor({ sections, editable, errors, onChange }: Sectio
             {index + 1}. {section.title}
           </span>
           {section.hint ? <span className="field-hint">提示：{section.hint}</span> : null}
-          <RichEditor value={section.contentHtml} editable={editable} onChange={(html) => onChange(section.key, html)} />
+          <RichEditor
+            value={section.contentHtml}
+            editable={editable}
+            placeholder={'在这里填写「' + (section.title.length > 16 ? section.title.slice(0, 16) + '…' : section.title) + '」…（可直接粘贴或拖拽图片）'}
+            onChange={(html) => onChange(section.key, html)}
+          />
           {errors[section.key] ? <span className="field-error">{errors[section.key]}</span> : null}
         </div>
       ))}
