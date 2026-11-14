@@ -36,6 +36,20 @@ export function mergeOwners(primary: OwnerOption[], extra: OwnerOption[]): Owner
   return merged
 }
 
+export interface GroupOption {
+  id: string
+  name: string
+}
+
+export async function fetchGroups(): Promise<GroupOption[]> {
+  try {
+    const result = await api<{ items: Array<{ id: string; name: string }> }>('/api/groups')
+    return result.items.map((group) => ({ id: group.id, name: group.name }))
+  } catch {
+    return []
+  }
+}
+
 export async function fetchOwners(): Promise<OwnerOption[]> {
   try {
     const result = await api<{ items: UserDTO[] }>('/api/users', { query: { pageSize: 200 } })

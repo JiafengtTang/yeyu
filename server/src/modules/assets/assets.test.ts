@@ -319,13 +319,16 @@ describe('资产台账', () => {
       '[export] status=' + res.statusCode + ' rows=' + (sheet.rowCount - 1) + ' headers=' + headers.join(',') +
         ' disposition=' + disposition
     )
-    expect(headers).toEqual(ASSET_HEADERS)
+    // 导出的列比导入模板多一列「使用小组」（导入模板不需要该列也能导入）
+    const exportHeaders = [...ASSET_HEADERS]
+    exportHeaders.splice(exportHeaders.indexOf('状态'), 0, '使用小组')
+    expect(headers).toEqual(exportHeaders)
     expect(sheet.rowCount).toBe(21)
     const firstRow = (sheet.getRow(2).values as (string | number | undefined)[]).slice(1)
     const lastRow = (sheet.getRow(21).values as (string | number | undefined)[]).slice(1)
     expect(firstRow[0]).toBe('AST-001')
     expect(firstRow[1]).toBe('导出资产 1')
-    expect(firstRow[12]).toBe('在用')
+    expect(firstRow[13]).toBe('在用')
     expect(lastRow[0]).toBe('AST-020')
 
     const template = await app.inject({ method: 'GET', url: '/api/assets/template', headers: auth(member) })
@@ -334,7 +337,9 @@ describe('资产台账', () => {
     await templateBook.xlsx.load(template.rawPayload)
     const templateSheet = templateBook.getWorksheet(1)!
     const templateHeaders = (templateSheet.getRow(1).values as (string | undefined)[]).slice(1).map((value) => String(value))
-    expect(templateHeaders).toEqual(ASSET_HEADERS)
+    const templateExpected = [...ASSET_HEADERS]
+    templateExpected.splice(templateExpected.indexOf('状态'), 0, '使用小组')
+    expect(templateHeaders).toEqual(templateExpected)
     expect(templateSheet.rowCount).toBe(2)
   })
 
@@ -439,5 +444,72 @@ describe('资产台账', () => {
     expect((res.json() as { ok: boolean }).ok).toBe(true)
     const log = await prisma.auditLog.findFirst({ where: { entityType: 'ASSET', action: 'DELETE' } })
     expect(log?.entityId).toBe(asset.id)
+  })
+})
+
+describe('资产使用小组', () => {
+  beforeEach(async () => {
+    await prisma.group.deleteMany({})
+  })
+
+  it('显式指定小组；不指定时随责任人所在小组；可按小组筛选（含 NONE）', async () => {
+    const group = await prisma.group.create({ data: { name: '声学组' } })
+    const groupTwo = await prisma.group.create({ data: { name: '工艺组' } })
+    await prisma.user.update({ where: { id: member.id }, data: { groupId: group.id } })
+
+    const explicit = await createAsset(admin, { code: 'GRP-001', groupId: groupTwo.id })
+    expect(explicit.groupId).toBe(groupTwo.id)
+    expect(explicit.groupName).toBe('工艺组')
+    expect(explicit.groupFromOwner).toBe(false)
+
+    const follow = await createAsset(admin, { code: 'GRP-002', ownerId: member.id })
+    expect(follow.groupId).toBeNull()
+    expect(follow.groupName).toBe('声学组')
+    expect(follow.groupFromOwner).toBe(true)
+
+    const orphan = await createAsset(admin, { code: 'GRP-003', ownerId: '' })
+    expect(orphan.groupName).toBeNull()
+
+    const byGroup = await app.inject({ method: 'GET', url: '/api/assets?groupId=' + groupTwo.id, headers: auth(admin) })
+    expect((byGroup.json() as { items: AssetDTO[] }).items.map((item) => item.code).sort()).toEqual(['GRP-001'])
+
+    const byOwnerGroup = await app.inject({ method: 'GET', url: '/api/assets?groupId=' + group.id, headers: auth(admin) })
+    expect((byOwnerGroup.json() as { items: AssetDTO[] }).items.map((item) => item.code)).toEqual(['GRP-002'])
+
+    const none = await app.inject({ method: 'GET', url: '/api/assets?groupId=NONE', headers: auth(admin) })
+    const noneCodes = (none.json() as { items: AssetDTO[] }).items.map((item) => item.code)
+    expect(noneCodes).toContain('GRP-003')
+    expect(noneCodes).not.toContain('GRP-001')
+  })
+
+  it('改小组与清空小组；小组不存在返回 404', async () => {
+    const group = await prisma.group.create({ data: { name: '仿真组' } })
+    const asset = await createAsset(admin, { code: 'GRP-010' })
+
+    const patched = await app.inject({
+      method: 'PATCH',
+      url: '/api/assets/' + asset.id,
+      headers: auth(admin),
+      payload: { groupId: group.id }
+    })
+    expect(patched.statusCode).toBe(200)
+    expect((patched.json() as AssetDTO).groupName).toBe('仿真组')
+
+    const cleared = await app.inject({
+      method: 'PATCH',
+      url: '/api/assets/' + asset.id,
+      headers: auth(admin),
+      payload: { groupId: null }
+    })
+    expect(cleared.statusCode).toBe(200)
+    expect((cleared.json() as AssetDTO).groupId).toBeNull()
+
+    const bad = await app.inject({
+      method: 'PATCH',
+      url: '/api/assets/' + asset.id,
+      headers: auth(admin),
+      payload: { groupId: 'no-such-group' }
+    })
+    expect(bad.statusCode).toBe(404)
   })
 })

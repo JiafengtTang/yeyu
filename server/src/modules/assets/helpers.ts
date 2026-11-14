@@ -26,6 +26,14 @@ export function buildAssetWhere(query: AssetQuery): Prisma.AssetWhereInput {
   if (query.category) where.category = query.category
   if (query.status) where.status = query.status
   if (query.ownerId) where.ownerId = query.ownerId
+  if (query.groupId === 'NONE') {
+    where.AND = [{ groupId: null }, { OR: [{ ownerId: null }, { owner: { groupId: null } }] }]
+  } else if (query.groupId) {
+    where.OR = [
+      { groupId: query.groupId },
+      { groupId: null, owner: { groupId: query.groupId } }
+    ]
+  }
   return where
 }
 

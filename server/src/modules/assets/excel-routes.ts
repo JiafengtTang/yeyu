@@ -81,6 +81,7 @@ export async function registerExcelRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const ownerCache = new Map<string, string | null>()
+    const groupCache = new Map<string, string | null>()
     let created = 0
     let updated = 0
     let skipped = 0
@@ -123,6 +124,19 @@ export async function registerExcelRoutes(app: FastifyInstance): Promise<void> {
           if (!ownerId) throw new Error('责任人不存在: ' + ownerName)
         }
 
+        let groupId: string | null = null
+        const groupName = values.groupName?.trim()
+        if (groupName) {
+          if (groupCache.has(groupName)) {
+            groupId = groupCache.get(groupName) ?? null
+          } else {
+            const group = await prisma.group.findFirst({ where: { name: groupName }, select: { id: true } })
+            groupId = group?.id ?? null
+            groupCache.set(groupName, groupId)
+          }
+          if (!groupId) throw new Error('小组不存在: ' + groupName)
+        }
+
         const base = {
           name,
           category,
@@ -141,11 +155,19 @@ export async function registerExcelRoutes(app: FastifyInstance): Promise<void> {
         if (existing) {
           const data: Prisma.AssetUncheckedUpdateInput = { ...base }
           if (ownerId) data.ownerId = ownerId
+          if (groupId) data.groupId = groupId
           if (status) data.status = status
           await prisma.asset.update({ where: { id: existing.id }, data })
           updated += 1
         } else {
-          const data: Prisma.AssetUncheckedCreateInput = { code, ...base, status: status ?? 'IN_USE', ownerId, createdById: user.id }
+          const data: Prisma.AssetUncheckedCreateInput = {
+            code,
+            ...base,
+            status: status ?? 'IN_USE',
+            ownerId,
+            groupId,
+            createdById: user.id
+          }
           await prisma.asset.create({ data })
           created += 1
         }

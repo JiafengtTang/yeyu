@@ -1,20 +1,22 @@
 import { useRef, type ChangeEvent } from 'react'
 import { ASSET_CATEGORY_SUGGESTIONS, ASSET_STATUSES, ASSET_STATUS_LABEL } from '@yeyu/shared'
 import { Button, Card, Input, Select } from '../../ui'
-import type { OwnerOption } from './shared'
+import type { GroupOption, OwnerOption } from './shared'
 
 export interface AssetFilterState {
   q: string
   category: string
   status: string
   ownerId: string
+  groupId: string
 }
 
-export const EMPTY_FILTERS: AssetFilterState = { q: '', category: '', status: '', ownerId: '' }
+export const EMPTY_FILTERS: AssetFilterState = { q: '', category: '', status: '', ownerId: '', groupId: '' }
 
 interface Props {
   value: AssetFilterState
   owners: OwnerOption[]
+  groups: GroupOption[]
   canImport: boolean
   importing: boolean
   onChange(next: AssetFilterState): void
@@ -24,7 +26,7 @@ interface Props {
   onDownloadTemplate(): void
 }
 
-export function AssetFilters({ value, owners, canImport, importing, onChange, onCreate, onImport, onExport, onDownloadTemplate }: Props) {
+export function AssetFilters({ value, owners, groups, canImport, importing, onChange, onCreate, onImport, onExport, onDownloadTemplate }: Props) {
   const fileRef = useRef<HTMLInputElement | null>(null)
 
   function update(patch: Partial<AssetFilterState>): void {
@@ -70,6 +72,20 @@ export function AssetFilters({ value, owners, canImport, importing, onChange, on
           {ASSET_STATUSES.map((status) => (
             <option key={status} value={status}>
               {ASSET_STATUS_LABEL[status]}
+            </option>
+          ))}
+        </Select>
+        <Select
+          style={{ width: 132 }}
+          value={value.groupId}
+          onChange={(event) => update({ groupId: event.target.value })}
+          aria-label="使用小组筛选"
+        >
+          <option value="">全部小组</option>
+          <option value="NONE">未归属小组</option>
+          {groups.map((group) => (
+            <option key={group.id} value={group.id}>
+              {group.name}
             </option>
           ))}
         </Select>

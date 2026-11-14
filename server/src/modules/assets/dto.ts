@@ -23,7 +23,8 @@ export const BORROW_INCLUDE = {
 export type BorrowRow = Prisma.BorrowRecordGetPayload<{ include: typeof BORROW_INCLUDE }>
 
 export const ASSET_INCLUDE = {
-  owner: { select: { id: true, name: true } },
+  owner: { select: { id: true, name: true, group: { select: { id: true, name: true } } } },
+  group: { select: { id: true, name: true } },
   attachments: { include: { media: true }, orderBy: { createdAt: 'asc' } },
   borrows: {
     where: { returnedAt: null },
@@ -89,6 +90,9 @@ export function toAssetDTO(row: AssetRow): AssetDTO {
     location: row.location,
     ownerId: row.ownerId,
     ownerName: row.owner?.name ?? null,
+    groupId: row.groupId,
+    groupName: row.group?.name ?? row.owner?.group?.name ?? null,
+    groupFromOwner: !row.groupId && Boolean(row.owner?.group?.name),
     status: row.status as AssetStatus,
     remark: row.remark,
     createdAt: row.createdAt.toISOString(),

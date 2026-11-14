@@ -80,7 +80,8 @@ model Group {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  users User[]
+  users  User[]
+  assets Asset[] @relation("AssetGroup")
 }
 
 model Media {
@@ -112,6 +113,9 @@ model Asset {
   location     String?
   ownerId      String?
   owner        User?     @relation("AssetOwner", fields: [ownerId], references: [id])
+  /// 使用小组；为空时按责任人所在小组显示
+  groupId      String?
+  group        Group?    @relation("AssetGroup", fields: [groupId], references: [id], onDelete: SetNull)
   status       String    @default("IN_USE")
   remark       String?
   createdById  String?

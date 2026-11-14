@@ -82,6 +82,7 @@ export async function registerAssetRoutes(app: FastifyInstance): Promise<void> {
       supplier: nullIfEmpty(input.supplier) ?? null,
       location: nullIfEmpty(input.location) ?? null,
       ownerId,
+      groupId: input.groupId ?? null,
       status: input.status ?? 'IN_USE',
       remark: nullIfEmpty(input.remark) ?? null,
       createdById: user.id
@@ -148,6 +149,16 @@ export async function registerAssetRoutes(app: FastifyInstance): Promise<void> {
     const remark = nullIfEmpty(patch.remark)
     if (remark !== undefined && remark !== asset.remark) setField('remark', asset.remark, remark)
     if (patch.status !== undefined && patch.status !== asset.status) setField('status', asset.status, patch.status)
+    if (patch.groupId !== undefined) {
+      const nextGroup = patch.groupId === null || patch.groupId.trim() === '' ? null : patch.groupId.trim()
+      if (nextGroup !== asset.groupId) {
+        if (nextGroup) await ensureUserExists(nextGroup).catch(async () => {
+          const group = await prisma.group.findUnique({ where: { id: nextGroup } })
+          if (!group) throw AppError.notFound('小组不存在')
+        })
+        setField('groupId', asset.groupId, nextGroup)
+      }
+    }
     if (patch.ownerId !== undefined) {
       const raw = patch.ownerId.trim()
       const nextOwner = raw === '' ? null : raw

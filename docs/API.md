@@ -222,3 +222,12 @@ Obsidian 风格的轻量笔记系统：日报按天归档，另有自由笔记�
 **数据模型**：`Note`（`kind` / `title` / `day` / `contentHtml` / `plainText` / `tagsJson`）
 与 `NoteLink`（`sourceId` / `targetId` / `targetTitle`）。
 
+
+**资产的使用小组**（2026-11 追加）
+
+- `Asset.groupId`（可空）：资产归属的使用小组。为空时按**责任人所在小组**显示。
+- `AssetDTO` 新增 `groupId`、`groupName`（展示值：显式小组优先，否则责任人小组）、`groupFromOwner`（是否来自责任人）。
+- `GET /api/assets` 新增查询参数 `groupId`：按小组筛选，**会同时命中「显式指定该组」与「责任人属于该组」的资产**；传 `NONE` 只看未归属任何小组的资产。
+- `POST /api/assets` / `PATCH /api/assets/:id` 支持 `groupId`：传小组 id 指定，传 `null` 清空（回到跟随责任人），小组不存在返回 404。成员不能改（仅管理员）。
+- Excel：导出与模板新增「使用小组」列；导入时该列按小组名匹配，找不到会报「小组不存在: xxx」；不填则留空。
+

@@ -56,6 +56,8 @@ function assetCellValue(row: AssetRow, key: AssetColumnKey): string | number | n
       return row.location
     case 'ownerName':
       return row.owner?.name ?? null
+    case 'groupName':
+      return row.group?.name ?? row.owner?.group?.name ?? null
     case 'status':
       return assetStatusLabel(row.status)
     case 'remark':

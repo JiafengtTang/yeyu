@@ -10,7 +10,7 @@ import { AssetTable } from './assets/AssetTable'
 import { AuditTab } from './assets/AuditTab'
 import { BorrowModal } from './assets/BorrowModal'
 import { InventoryTab } from './assets/InventoryTab'
-import { canEditAsset, fetchOwners, mergeOwners, type OwnerOption } from './assets/shared'
+import { canEditAsset, fetchGroups, fetchOwners, mergeOwners, type GroupOption, type OwnerOption } from './assets/shared'
 
 const PAGE_SIZE = 20
 
@@ -32,6 +32,7 @@ export default function AssetsPage() {
   const [data, setData] = useState<ListResult<AssetDTO> | null>(null)
   const [loading, setLoading] = useState(true)
   const [fetchedOwners, setFetchedOwners] = useState<OwnerOption[]>([])
+  const [groups, setGroups] = useState<GroupOption[]>([])
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<AssetDTO | null>(null)
   const [attachmentsAsset, setAttachmentsAsset] = useState<AssetDTO | null>(null)
@@ -50,6 +51,7 @@ export default function AssetsPage() {
           category: filters.category,
           status: filters.status,
           ownerId: filters.ownerId,
+          groupId: filters.groupId,
           page,
           pageSize: PAGE_SIZE
         }
@@ -70,6 +72,9 @@ export default function AssetsPage() {
     let alive = true
     void fetchOwners().then((list) => {
       if (alive) setFetchedOwners(list)
+    })
+    void fetchGroups().then((list) => {
+      if (alive) setGroups(list)
     })
     return () => {
       alive = false
@@ -138,7 +143,8 @@ export default function AssetsPage() {
       q: filters.q.trim(),
       category: filters.category,
       status: filters.status,
-      ownerId: filters.ownerId
+      ownerId: filters.ownerId,
+      groupId: filters.groupId
     }).catch((err) => {
       toast.push(apiErrorMessage(err), 'error')
     })
@@ -199,6 +205,7 @@ export default function AssetsPage() {
           <AssetFilters
             value={filters}
             owners={owners}
+            groups={groups}
             canImport={isAdmin}
             importing={importing}
             onChange={changeFilters}
@@ -233,6 +240,7 @@ export default function AssetsPage() {
         open={formOpen}
         asset={editing}
         owners={owners}
+        groups={groups}
         isAdmin={isAdmin}
         currentUserId={user?.id ?? ''}
         onClose={() => {

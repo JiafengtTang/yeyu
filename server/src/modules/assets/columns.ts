@@ -13,6 +13,7 @@ export type AssetColumnKey =
   | 'supplier'
   | 'location'
   | 'ownerName'
+  | 'groupName'
   | 'status'
   | 'remark'
 
@@ -35,6 +36,7 @@ export const ASSET_COLUMNS: AssetColumn[] = [
   { key: 'supplier', header: '供应商', width: 18 },
   { key: 'location', header: '存放位置', width: 16 },
   { key: 'ownerName', header: '责任人', width: 12 },
+  { key: 'groupName', header: '使用小组', width: 14 },
   { key: 'status', header: '状态', width: 10 },
   { key: 'remark', header: '备注', width: 30 }
 ]
@@ -52,6 +54,7 @@ export const TEMPLATE_ROW: Record<AssetColumnKey, string | number> = {
   supplier: '示例供应商',
   location: '实验室 A-01',
   ownerName: '张三',
+  groupName: '示例小组',
   status: '在用',
   remark: '模板示例行，导入前请删除'
 }

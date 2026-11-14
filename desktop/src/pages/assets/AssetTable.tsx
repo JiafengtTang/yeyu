@@ -61,6 +61,7 @@ export function AssetTable({
               <th>购置日期</th>
               <th>存放位置</th>
               <th>责任人</th>
+              <th>使用小组</th>
               <th>状态</th>
               <th>操作</th>
             </tr>
@@ -88,6 +89,10 @@ export function AssetTable({
                         {asset.activeBorrow.borrowerName ?? '借用人'}
                       </span>
                     ) : null}
+                  </td>
+                  <td>
+                    {asset.groupName ?? '-'}
+                    {asset.groupFromOwner ? <span className="group-hint">随责任人</span> : null}
                   </td>
                   <td>
                     <div className="table-actions">

@@ -72,6 +72,9 @@ table.table td:nth-child(2), table.table td:nth-child(9) { white-space: normal; 
 .card-body h4:first-child { margin-top: 0; }
 .form-grid .toolbar { margin: 0; }
 
+/* 资产的「使用小组」：小组名 + 来源标记各占一行，避免被列宽裁掉 */
+.group-hint { display: block; font-size: 11px; line-height: 1.4; color: var(--ink-faint); }
+
 /* 笔记与日报 */
 .notes-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
 .notes-tab {

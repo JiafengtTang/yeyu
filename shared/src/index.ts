@@ -76,6 +76,8 @@ export const assetInputSchema = z.object({
   supplier: z.string().max(200).optional(),
   location: z.string().max(200).optional(),
   ownerId: z.string().optional(),
+  /** 使用小组；null 表示跟随责任人所在小组 */
+  groupId: z.string().nullable().optional(),
   status: z.enum(ASSET_STATUSES).optional(),
   remark: z.string().max(2000).optional()
 })
@@ -87,6 +89,8 @@ export const assetQuerySchema = z.object({
   category: z.string().optional(),
   status: z.enum(ASSET_STATUSES).optional(),
   ownerId: z.string().optional(),
+  /** 按使用小组筛选；NONE 表示未归属任何小组 */
+  groupId: z.string().optional(),
   page: z.coerce.number().int().min(1).optional(),
   pageSize: z.coerce.number().int().min(1).max(200).optional(),
   sortBy: z.enum(['code', 'name', 'amount', 'purchaseDate', 'createdAt', 'updatedAt']).optional(),
@@ -211,6 +215,10 @@ export interface AssetDTO {
   location: string | null
   ownerId: string | null
   ownerName: string | null
+  groupId: string | null
+  /** 展示用：显式小组优先，否则取责任人所在小组 */
+  groupName: string | null
+  groupFromOwner: boolean
   status: AssetStatus
   remark: string | null
   createdAt: string

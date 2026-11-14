@@ -10,7 +10,7 @@ import {
 import { api, apiErrorMessage } from '../../api/client'
 import { Button, Field, Input, Modal, Select, Textarea, useToast } from '../../ui'
 import { AssetAttachments } from './AssetAttachments'
-import type { OwnerOption } from './shared'
+import type { GroupOption, OwnerOption } from './shared'
 
 interface FormState {
   code: string
@@ -25,6 +25,8 @@ interface FormState {
   supplier: string
   location: string
   ownerId: string
+  /** 空字符串 = 跟随责任人所在小组 */
+  groupId: string
   status: AssetStatus
   remark: string
 }
@@ -43,6 +45,7 @@ function emptyForm(ownerId: string): FormState {
     supplier: '',
     location: '',
     ownerId,
+    groupId: '',
     status: 'IN_USE',
     remark: ''
   }
@@ -62,6 +65,7 @@ function fromAsset(asset: AssetDTO): FormState {
     supplier: asset.supplier ?? '',
     location: asset.location ?? '',
     ownerId: asset.ownerId ?? '',
+    groupId: asset.groupId ?? '',
     status: asset.status,
     remark: asset.remark ?? ''
   }
@@ -71,13 +75,14 @@ interface Props {
   open: boolean
   asset: AssetDTO | null
   owners: OwnerOption[]
+  groups: GroupOption[]
   isAdmin: boolean
   currentUserId: string
   onClose(): void
   onSaved(asset: AssetDTO): void
 }
 
-export function AssetFormModal({ open, asset, owners, isAdmin, currentUserId, onClose, onSaved }: Props) {
+export function AssetFormModal({ open, asset, owners, groups, isAdmin, currentUserId, onClose, onSaved }: Props) {
   const toast = useToast()
   const [form, setForm] = useState<FormState>(() => emptyForm(currentUserId))
   const [saving, setSaving] = useState(false)
@@ -128,6 +133,7 @@ export function AssetFormModal({ open, asset, owners, isAdmin, currentUserId, on
       supplier: form.supplier.trim() || undefined,
       location: form.location.trim() || undefined,
       ownerId: isAdmin ? form.ownerId || undefined : undefined,
+      groupId: form.groupId ? form.groupId : isAdmin ? null : undefined,
       status: form.status,
       remark: form.remark.trim() || undefined
     }
@@ -229,6 +235,16 @@ export function AssetFormModal({ open, asset, owners, isAdmin, currentUserId, on
             {owners.map((owner) => (
               <option key={owner.id} value={owner.id}>
                 {owner.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="使用小组" hint="留空则跟随责任人所在小组">
+          <Select value={form.groupId} disabled={!isAdmin} onChange={(event) => update({ groupId: event.target.value })}>
+            <option value="">跟随责任人</option>
+            {groups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
               </option>
             ))}
           </Select>
