@@ -132,7 +132,7 @@ export function UpdateChecker() {
           <>
             <div className="update-row">
               <span className="muted">当前版本</span>
-              <strong>v{version || result?.currentVersion || '—'}</strong>
+              <strong>v{result?.currentVersion || version || '—'}</strong>
             </div>
 
             {phase === 'checking' ? <p className="muted">正在向 GitHub 查询最新版本…</p> : null}
