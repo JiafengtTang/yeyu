@@ -131,7 +131,7 @@ pnpm dev                                # 服务端 4000 + Vite 5173 + Electron 
 | 笔记与日报 | 每天一条日报（按天唯一、日历浏览）+ 自由笔记；`[[双向链接]]` 与反链面板、`#标签` 筛选、全文搜索、关系图谱、导出 `.md`；仅本人可见；接口 `/api/notes*` |
 | 成员分组 | 管理员建组/改名/删组（删组只把成员移回未分组，不删账号），成员行内指派小组，按小组筛选账号；一人一组；接口 `/api/groups*`，`PATCH /api/users/:id` 的 `groupId` |
 | 资产台账 | 增删改查（行级权限：成员只能改自己负责的资产）、使用小组（显式指定或跟随责任人）与按组筛选、关键词/类别/状态/责任人筛选、分页排序、Excel 导入导出与模板、附件上传（照片/发票/合同）与鉴权预览、借用/归还、盘点批次与差异表、审计日志；接口 `/api/assets*`、`/api/borrows*`、`/api/inventory/*`、`/api/audit` |
-| 图文周报 | ISO 周键 `YYYY-Www`，一人一周一份；TipTap 富文本 + 图片（存 `<img src="media:<id>">`，渲染时换带 token 的真实地址）；草稿自动保存、提交、管理员通过/退回、评论串、导出 Word（`docx`）与 PDF（Electron `printPdf`）；接口 `/api/reports*` |
+| 图文周报 | ISO 周键 `YYYY-Www`，一人一周一份；提交频次可设为每周 / 单周 / 双周（非提交周不计未交、不算逾期）；TipTap 富文本 + 图片（存 `<img src="media:<id>">`，渲染时换带 token 的真实地址）；草稿自动保存、提交、管理员通过/退回、评论串、导出 Word（`docx`）与 PDF（Electron `printPdf`）；接口 `/api/reports*` |
 | 媒体 | `POST /api/media` 上传（≤20MB，白名单 MIME）、`GET /api/media/:id` 鉴权预览、`DELETE` 上传者或管理员 |
 | 运维 | 一键 seed 首个管理员、Docker Compose 部署、`scripts/backup.sh`/`restore.sh` 备份恢复、免签名打包脚本 |
 

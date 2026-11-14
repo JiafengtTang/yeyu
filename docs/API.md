@@ -231,3 +231,13 @@ Obsidian 风格的轻量笔记系统：日报按天归档，另有自由笔记�
 - `POST /api/assets` / `PATCH /api/assets/:id` 支持 `groupId`：传小组 id 指定，传 `null` 清空（回到跟随责任人），小组不存在返回 404。成员不能改（仅管理员）。
 - Excel：导出与模板新增「使用小组」列；导入时该列按小组名匹配，找不到会报「小组不存在: xxx」；不填则留空。
 
+
+**提交频次**（2026-11 追加）
+
+- 设置项 `report.frequency`：`WEEKLY`（每周，默认）/ `BIWEEKLY_ODD`（每两周一次·单周提交）/ `BIWEEKLY_EVEN`（双周提交）。
+  单周 = ISO 周号奇数，双周 = 偶数。
+- `PATCH /api/settings/report-deadline` 接受 `frequency`（可省略，省略时沿用当前值）；非法值返回 422，成员调用 403。
+- `DeadlineDTO` 新增：`frequency`、`required`（本周是否需要提交）、`nextRequiredWeek`（从本周起下一个提交周）。
+- `GET /api/reports/summary`：非提交周时 `isOverdue` 恒为 false，`admin.missing` 返回空数组（待审阅数照常统计）。
+- 周报本身仍以 ISO 周为单位，频次只决定**哪几周需要提交**；非提交周仍可提前写，但不算未交。
+
