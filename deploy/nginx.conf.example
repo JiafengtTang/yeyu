@@ -1,14 +1,14 @@
 # nginx 反向代理示例（可选）：把 4000 端口的服务放到 80/443 上，供内网访问
 # 用法：复制到 /etc/nginx/conf.d/yeyu.conf，改 server_name 与证书路径后 nginx -t && systemctl reload nginx
 
-upstream lab_asset_hub {
+upstream yeyu {
     server 127.0.0.1:4000;
     keepalive 32;
 }
 
 server {
     listen 80;
-    server_name lab-asset.example.internal;
+    server_name yeyu.example.internal;
 
     # 仓库自带 20MB 上传上限，这里留出 multipart 开销
     client_max_body_size 25m;
@@ -18,7 +18,7 @@ server {
     gzip_types text/plain text/css application/javascript application/json;
 
     location / {
-        proxy_pass http://lab_asset_hub;
+        proxy_pass http://yeyu;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -32,12 +32,12 @@ server {
 # HTTPS（内网有自签或企业 CA 时启用；浏览器/客户端需信任该证书）
 # server {
 #     listen 443 ssl http2;
-#     server_name lab-asset.example.internal;
-#     ssl_certificate     /etc/nginx/ssl/lab-asset.crt;
-#     ssl_certificate_key /etc/nginx/ssl/lab-asset.key;
+#     server_name yeyu.example.internal;
+#     ssl_certificate     /etc/nginx/ssl/yeyu.crt;
+#     ssl_certificate_key /etc/nginx/ssl/yeyu.key;
 #     client_max_body_size 25m;
 #     location / {
-#         proxy_pass http://lab_asset_hub;
+#         proxy_pass http://yeyu;
 #         proxy_http_version 1.1;
 #         proxy_set_header Host $host;
 #         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

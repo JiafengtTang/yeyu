@@ -32,7 +32,7 @@ services:
     ports:
       - "${APP_PORT:-4000}:4000"
     volumes:
-      - lab-data:/data
+      - yeyu-data:/data
     healthcheck:
       test:
         - CMD
@@ -50,5 +50,5 @@ services:
         max-file: "5"
 
 volumes:
-  lab-data:
+  yeyu-data:
     name: yeyu-data

@@ -72,6 +72,25 @@ table.table td:nth-child(2), table.table td:nth-child(9) { white-space: normal; 
 .card-body h4:first-child { margin-top: 0; }
 .form-grid .toolbar { margin: 0; }
 
+/* 侧边栏「检查更新」与更新弹窗 */
+.sidebar-update {
+  display: flex; align-items: center; gap: 6px; margin: 6px 12px 2px; padding: 7px 10px;
+  border-radius: 9px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.72); font-size: 12px; cursor: pointer; font: inherit;
+}
+.sidebar-update:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.update-dot { width: 7px; height: 7px; border-radius: 50%; background: #ff5a5f; margin-left: auto; box-shadow: 0 0 0 3px rgba(255, 90, 95, 0.22); }
+.update-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 13px; }
+.update-notes {
+  margin: 8px 0; padding: 10px 12px; max-height: 180px; overflow: auto; white-space: pre-wrap;
+  font-size: 12px; line-height: 1.65; background: #f7f9fc; border: 1px solid var(--line); border-radius: 8px; color: var(--ink-2);
+}
+.update-ok { display: flex; align-items: center; gap: 6px; color: #0f7b45; font-size: 13px; }
+.update-progress { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.update-progress-bar { height: 8px; border-radius: 999px; background: #eef1f6; overflow: hidden; }
+.update-progress-bar span { display: block; height: 100%; background: linear-gradient(90deg, #2f6fed, #7c5cf0); transition: width 0.2s ease; }
+.link-button { border: none; background: none; padding: 0; margin-top: 10px; color: var(--brand); font-size: 12.5px; cursor: pointer; text-decoration: underline; font: inherit; }
+
 /* 资产的「使用小组」：小组名 + 来源标记各占一行，避免被列宽裁掉 */
 .group-hint { display: block; font-size: 11px; line-height: 1.4; color: var(--ink-faint); }
 

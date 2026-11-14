@@ -11,7 +11,7 @@ import { signToken } from '../../plugins/auth.js'
 
 process.env.NODE_ENV = 'test'
 process.env.JWT_SECRET = 'test-secret'
-process.env.UPLOAD_DIR = mkdtempSync(path.join(tmpdir(), 'lab-asset-test-'))
+process.env.UPLOAD_DIR = mkdtempSync(path.join(tmpdir(), 'yeyu-asset-test-'))
 
 if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.includes('test-b')) {
   throw new Error('测试必须使用独立测试库，请用 DATABASE_URL="file:./test-b.db" 运行')
@@ -50,7 +50,7 @@ function multipart(
   fields: Record<string, string>,
   file: { field: string; filename: string; contentType: string; buffer: Buffer }
 ): { body: Buffer; contentType: string } {
-  const boundary = '----lab-asset-test-' + Date.now() + '-' + Math.random().toString(16).slice(2)
+  const boundary = '----yeyu-asset-test-' + Date.now() + '-' + Math.random().toString(16).slice(2)
   const chunks: Buffer[] = []
   for (const [name, value] of Object.entries(fields)) {
     chunks.push(Buffer.from('--' + boundary + '\r\nContent-Disposition: form-data; name="' + name + '"\r\n\r\n' + value + '\r\n'))

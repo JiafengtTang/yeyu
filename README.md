@@ -98,6 +98,25 @@ pnpm dev                                # 服务端 4000 + Vite 5173 + Electron 
 
 ---
 
+## 更新方式（应用内）
+
+客户端启动 6 秒后会静默向 GitHub 查询最新 Release；也可以点侧边栏底部「检查更新」手动查。
+
+1. 有新版本 → 弹窗显示版本号与更新说明 → 点「下载并安装」直接下载对应平台安装包（mac 取 `dmg`，Windows 取 `exe`，按 arm64/x64 自动挑）；
+2. 下载完成后点「打开安装包」，系统安装程序接管，装完即是最新版；
+3. 没有新版本会显示「已是最新版本」；也可以点「在浏览器中打开发布页」手动下载。
+
+发布新版本的做法（维护者）：
+
+```bash
+cd desktop && pnpm run build:win && pnpm run build:mac   # 先在 package.json 提升 version
+gh release create v0.2.0 --repo JiafengtTang/yeyu --title "页屿 v0.2.0" --notes "更新说明" \
+  release/yeyu-0.2.0-mac-arm64.dmg release/yeyu-0.2.0-win-x64-setup.exe
+```
+
+> 未做代码签名，所以走的是「下载安装包 → 由系统安装程序安装」的方式，而不是静默自动更新。
+> macOS 首次打开未签名包需要右键「打开」，或 `xattr -dr com.apple.quarantine /Applications/页屿.app`。
+
 ## 构建产物
 
 打包配置在 `desktop/electron-builder.yml`（`appId=com.yeyu.desktop`、`productName=页屿`、`identity: null` 免签名），产物输出到 `desktop/release/`：
@@ -152,7 +171,7 @@ pnpm dev                                # 服务端 4000 + Vite 5173 + Electron 
 
 ## 许可与归属
 
-- 代码：仓库目前**未附开源许可证**（默认保留所有权利）。如需对外复用，可自行采用 MIT / Apache-2.0。
+- 代码：**MIT License**（见 [LICENSE](LICENSE)），可自由使用、修改与再分发，保留版权声明即可。
 - 登录页背景照片：来自 [Unsplash](https://unsplash.com)（Unsplash License，可商用、无需署名），
   文件为 `desktop/src/assets/login-bg.jpg`，本地 900×1300、约 180KB；替换同名文件即可换成自己的照片。
 - 界面图标与应用图标：本项目自制（Pillow 生成 `desktop/build/icon.*`）。

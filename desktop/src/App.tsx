@@ -12,6 +12,7 @@ import ReportsPage from './pages/ReportsPage'
 import ReportEditorPage from './pages/ReportEditorPage'
 import ReviewPage from './pages/ReviewPage'
 import NotesPage from './pages/NotesPage'
+import { UpdateChecker } from './ui/UpdateChecker'
 import AdminUsersPage from './pages/AdminUsersPage'
 import TemplatesPage from './pages/admin/TemplatesPage'
 
@@ -84,6 +85,8 @@ function Shell({ children }: { children: ReactNode }) {
             </NavLink>
           ))}
         </nav>
+
+        <UpdateChecker />
 
         <div className="sidebar-user">
           <span className="avatar">{initial}</span>

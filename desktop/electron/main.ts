@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
+import { checkForUpdates, registerUpdater } from './updater'
 import path from 'node:path'
 import os from 'node:os'
 import { promises as fs } from 'node:fs'
@@ -122,6 +123,8 @@ ipcMain.handle('window:set-mode', async (_event, mode: WindowMode) => {
   return { ok: true, mode }
 })
 
+registerUpdater(() => mainWindow)
+
 ipcMain.handle('app:info', async () => ({
   version: app.getVersion(),
   platform: process.platform,
@@ -132,7 +135,7 @@ ipcMain.handle('app:info', async () => ({
 ipcMain.handle('report:printPdf', async (_event, payload: { html: string; filename?: string }) => {
   const html = String(payload?.html ?? '')
   if (html.length === 0) return { saved: false, reason: 'empty' }
-  const tmpFile = path.join(os.tmpdir(), 'lab-report-' + Date.now() + '.html')
+  const tmpFile = path.join(os.tmpdir(), 'yeyu-report-' + Date.now() + '.html')
   await fs.writeFile(tmpFile, html, 'utf-8')
 
   const win = new BrowserWindow({ show: false, webPreferences: { offscreen: true, sandbox: false } })
@@ -164,6 +167,13 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) void createWindow()
   })
+
+  // 启动后静默检查一次：有新版本就把结果推给界面，由界面决定是否提示
+  setTimeout(() => {
+    void checkForUpdates().then((result) => {
+      if (result.ok && result.available) mainWindow?.webContents.send('update:available', result)
+    })
+  }, 6000)
 })
 
 app.on('window-all-closed', () => {
