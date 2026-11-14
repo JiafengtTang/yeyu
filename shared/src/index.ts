@@ -129,7 +129,9 @@ export const reportSaveSchema = z.object({
 /** 周报提交截止：全局规则（1=周一 … 7=周日）+ 单周覆盖 */
 export const deadlineRuleSchema = z.object({
   weekday: z.coerce.number().int().min(1).max(7),
-  time: z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/, '时间格式应为 HH:mm')
+  time: z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/, '时间格式应为 HH:mm'),
+  /** 提交频次，缺省按每周一次处理 */
+  frequency: z.enum(['WEEKLY', 'BIWEEKLY_ODD', 'BIWEEKLY_EVEN']).optional()
 })
 export const deadlineOverrideSchema = z.object({
   deadline: z.string().min(8),
@@ -298,6 +300,11 @@ export interface DeadlineDTO {
   weekday: number
   time: string
   overrideReason: string | null
+  frequency: ReportFrequency
+  /** 本周是否需要提交（单周/双周频次下，非提交周为 false） */
+  required: boolean
+  /** 下一个需要提交的周（含本周已需要提交的情况） */
+  nextRequiredWeek: string | null
 }
 
 export interface ReportCommentDTO {
@@ -532,4 +539,58 @@ export function htmlToMarkdown(html: string): string {
     .replace(/<[^>]+>/g, '')
 
   return decode(md).replace(/\n{3,}/g, '\n\n').trim() + '\n'
+}
+
+/* ────────────────────── 周报提交频次（每周 / 单周 / 双周） ────────────────────── */
+
+export const REPORT_FREQUENCIES = ['WEEKLY', 'BIWEEKLY_ODD', 'BIWEEKLY_EVEN'] as const
+export type ReportFrequency = (typeof REPORT_FREQUENCIES)[number]
+export const DEFAULT_REPORT_FREQUENCY: ReportFrequency = 'WEEKLY'
+export const REPORT_FREQUENCY_LABEL: Record<ReportFrequency, string> = {
+  WEEKLY: '每周一次',
+  BIWEEKLY_ODD: '每两周一次（单周提交）',
+  BIWEEKLY_EVEN: '每两周一次（双周提交）'
+}
+
+/** "2026-W46" -> 46；格式不对返回 null */
+export function weekNumberOf(week: string): number | null {
+  const matched = /^(\d{4})-W(\d{2})$/.exec(week)
+  if (!matched) return null
+  const n = Number(matched[2])
+  return n >= 1 && n <= 53 ? n : null
+}
+
+function isoWeeksInYear(year: number): number {
+  const last = new Date(Date.UTC(year, 11, 28))
+  const day = last.getUTCDay() || 7
+  const thursday = new Date(last)
+  thursday.setUTCDate(last.getUTCDate() + 4 - day)
+  const yearStart = new Date(Date.UTC(thursday.getUTCFullYear(), 0, 1))
+  return Math.ceil(((thursday.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+}
+
+/** 该周是否需要提交周报 */
+export function isReportWeek(week: string, frequency: ReportFrequency): boolean {
+  if (frequency === 'WEEKLY') return true
+  const n = weekNumberOf(week)
+  if (n === null) return false
+  return frequency === 'BIWEEKLY_ODD' ? n % 2 === 1 : n % 2 === 0
+}
+
+/** 从该校（含）起下一个需要提交的周；一直找不到返回 null */
+export function nextReportWeek(fromWeek: string, frequency: ReportFrequency): string | null {
+  const matched = /^(\d{4})-W(\d{2})$/.exec(fromWeek)
+  if (!matched) return null
+  let year = Number(matched[1])
+  let n = Number(matched[2])
+  for (let guard = 0; guard < 60; guard += 1) {
+    const key = year + '-W' + String(n).padStart(2, '0')
+    if (isReportWeek(key, frequency)) return key
+    n += 1
+    if (n > isoWeeksInYear(year)) {
+      year += 1
+      n = 1
+    }
+  }
+  return null
 }

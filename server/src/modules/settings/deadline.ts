@@ -1,4 +1,5 @@
-import type { DeadlineDTO } from '@yeyu/shared'
+import { DEFAULT_REPORT_FREQUENCY, REPORT_FREQUENCIES, isReportWeek, nextReportWeek } from '@yeyu/shared'
+import type { DeadlineDTO, ReportFrequency } from '@yeyu/shared'
 import { prisma } from '../../lib/prisma.js'
 import { AppError } from '../../lib/errors.js'
 import { weekKeyToRange } from '../../lib/time.js'
@@ -6,6 +7,7 @@ import { weekKeyToRange } from '../../lib/time.js'
 /** AppSetting 键：截止规则（1=周一 … 7=周日）与 HH:mm */
 export const WEEKDAY_KEY = 'report.deadline.weekday'
 export const TIME_KEY = 'report.deadline.time'
+export const FREQUENCY_KEY = 'report.frequency'
 
 export const DEFAULT_WEEKDAY = 7
 export const DEFAULT_TIME = '18:00'
@@ -16,6 +18,8 @@ export const TIME_RE = /^([01][0-9]|2[0-3]):[0-5][0-9]$/
 export interface DeadlineRule {
   weekday: number
   time: string
+  /** 提交频次：每周 / 单周 / 双周 */
+  frequency: ReportFrequency
 }
 
 /** 设置值缺失或损坏时回落到默认规则（周日 18:00），不阻断读取 */
@@ -24,11 +28,16 @@ export function ruleFromSettings(values: Record<string, string | undefined>): De
   const weekday = Number.isInteger(rawWeekday) && rawWeekday >= 1 && rawWeekday <= 7 ? rawWeekday : DEFAULT_WEEKDAY
   const rawTime = values[TIME_KEY]
   const time = rawTime && TIME_RE.test(rawTime) ? rawTime : DEFAULT_TIME
-  return { weekday, time }
+  const rawFrequency = values[FREQUENCY_KEY]
+  const frequency =
+    rawFrequency && (REPORT_FREQUENCIES as readonly string[]).includes(rawFrequency)
+      ? (rawFrequency as ReportFrequency)
+      : DEFAULT_REPORT_FREQUENCY
+  return { weekday, time, frequency }
 }
 
 export async function loadRule(): Promise<DeadlineRule> {
-  const rows = await prisma.appSetting.findMany({ where: { key: { in: [WEEKDAY_KEY, TIME_KEY] } } })
+  const rows = await prisma.appSetting.findMany({ where: { key: { in: [WEEKDAY_KEY, TIME_KEY, FREQUENCY_KEY] } } })
   const values: Record<string, string> = {}
   for (const row of rows) values[row.key] = row.value
   return ruleFromSettings(values)
@@ -39,6 +48,9 @@ export async function saveRule(rule: DeadlineRule): Promise<DeadlineRule> {
     throw AppError.validation('截止星期应在 1–7 之间（1=周一，7=周日）')
   }
   if (!TIME_RE.test(rule.time)) throw AppError.validation('时间格式应为 HH:mm')
+  if (!(REPORT_FREQUENCIES as readonly string[]).includes(rule.frequency)) {
+    throw AppError.validation('提交频次只能是每周 / 单周 / 双周')
+  }
   const weekday = String(rule.weekday)
   await prisma.$transaction([
     prisma.appSetting.upsert({
@@ -50,9 +62,14 @@ export async function saveRule(rule: DeadlineRule): Promise<DeadlineRule> {
       where: { key: TIME_KEY },
       create: { key: TIME_KEY, value: rule.time },
       update: { value: rule.time }
+    }),
+    prisma.appSetting.upsert({
+      where: { key: FREQUENCY_KEY },
+      create: { key: FREQUENCY_KEY, value: rule.frequency },
+      update: { value: rule.frequency }
     })
   ])
-  return { weekday: rule.weekday, time: rule.time }
+  return { weekday: rule.weekday, time: rule.time, frequency: rule.frequency }
 }
 
 /** 该 ISO 周周一 00:00 + (weekday-1) 天 + time，全部按本地时区 */
@@ -82,6 +99,9 @@ export function assertWeek(week: string): void {
 /** 单周截止时间：有覆盖用覆盖值（source=OVERRIDE），否则按全局规则计算 */
 export async function resolveDeadline(week: string): Promise<DeadlineDTO> {
   assertWeek(week)
+  const rule = await loadRule()
+  const required = isReportWeek(week, rule.frequency)
+  const nextRequired = nextReportWeek(week, rule.frequency)
   const override = await prisma.deadlineOverride.findUnique({ where: { week } })
   if (override) {
     return {
@@ -90,19 +110,24 @@ export async function resolveDeadline(week: string): Promise<DeadlineDTO> {
       source: 'OVERRIDE',
       weekday: weekdayOf(override.deadline),
       time: timeOf(override.deadline),
-      overrideReason: override.reason ?? null
+      overrideReason: override.reason ?? null,
+      frequency: rule.frequency,
+      required,
+      nextRequiredWeek: nextRequired
     }
   }
   const range = weekKeyToRange(week)
   if (!range) throw AppError.validation('周次格式应为 YYYY-Www')
-  const rule = await loadRule()
   return {
     week,
     deadline: computeDeadline(range.start, rule.weekday, rule.time).toISOString(),
     source: 'RULE',
     weekday: rule.weekday,
     time: rule.time,
-    overrideReason: null
+    overrideReason: null,
+    frequency: rule.frequency,
+    required,
+    nextRequiredWeek: nextRequired
   }
 }
 

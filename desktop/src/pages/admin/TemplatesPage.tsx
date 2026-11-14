@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { DeadlineDTO, ListResult, ReportTemplateDTO } from '@yeyu/shared'
-import { isoWeekKey } from '@yeyu/shared'
+import { DEFAULT_REPORT_FREQUENCY, isoWeekKey } from '@yeyu/shared'
+import type { ReportFrequency } from '@yeyu/shared'
 import { api, apiErrorMessage } from '../../api/client'
 import { useToast } from '../../ui'
 import { DeadlineCard } from './templates/DeadlineCard'
@@ -13,7 +14,11 @@ export default function TemplatesPage() {
   const [currentWeek] = useState(() => isoWeekKey(new Date()))
   const [templates, setTemplates] = useState<ReportTemplateDTO[]>([])
   const [loadingTemplates, setLoadingTemplates] = useState(true)
-  const [rule, setRule] = useState({ weekday: 7, time: '18:00' })
+  const [rule, setRule] = useState<{ weekday: number; time: string; frequency: ReportFrequency }>({
+    weekday: 7,
+    time: '18:00',
+    frequency: DEFAULT_REPORT_FREQUENCY
+  })
   const [deadline, setDeadline] = useState<DeadlineDTO | null>(null)
   const [overrides, setOverrides] = useState<DeadlineOverrideItem[]>([])
   const [loadingDeadline, setLoadingDeadline] = useState(true)
@@ -38,7 +43,7 @@ export default function TemplatesPage() {
         api<ListResult<DeadlineOverrideItem>>('/api/settings/report-deadline/overrides')
       ])
       setDeadline(current)
-      setRule({ weekday: current.weekday, time: current.time })
+      setRule({ weekday: current.weekday, time: current.time, frequency: current.frequency })
       setOverrides(list.items)
     } catch (err) {
       toast.push('加载截止时间失败：' + apiErrorMessage(err), 'error')
@@ -72,9 +77,12 @@ export default function TemplatesPage() {
     }
   }
 
-  const saveRule = async (weekday: number, time: string) => {
+  const saveRule = async (weekday: number, time: string, frequency: ReportFrequency) => {
     try {
-      await api<{ weekday: number; time: string }>('/api/settings/report-deadline', { method: 'PATCH', body: { weekday, time } })
+      await api<{ weekday: number; time: string; frequency: string }>('/api/settings/report-deadline', {
+        method: 'PATCH',
+        body: { weekday, time, frequency }
+      })
       toast.push('截止规则已保存：' + time, 'success')
       await loadDeadline()
     } catch (err) {

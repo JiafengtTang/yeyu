@@ -42,7 +42,11 @@ export async function registerSettingsModule(app: FastifyInstance): Promise<void
     const user = currentUser(req)
     const input = parse(deadlineRuleSchema, req.body)
     const before = await loadRule()
-    const rule = await saveRule({ weekday: input.weekday, time: input.time })
+    const rule = await saveRule({
+      weekday: input.weekday,
+      time: input.time,
+      frequency: input.frequency ?? before.frequency
+    })
     await recordAudit({
       actor: user,
       action: 'UPDATE',

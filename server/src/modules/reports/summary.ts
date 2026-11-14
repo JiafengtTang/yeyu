@@ -22,10 +22,10 @@ export async function buildSummary(user: AuthUser, now: Date = new Date()): Prom
   })
 
   const finished = mine !== null && isFinishedStatus(mine.status)
-  const isOverdue = now.getTime() > new Date(deadline.deadline).getTime() && !finished
+  const isOverdue = deadline.required && now.getTime() > new Date(deadline.deadline).getTime() && !finished
 
   let admin: ReportSummaryDTO['admin'] = null
-  if (isAdmin(user)) {
+  if (isAdmin(user) && deadline.required) {
     const [members, submitted, pendingReview] = await Promise.all([
       prisma.user.findMany({ where: { role: 'MEMBER', status: 'ACTIVE' }, orderBy: { createdAt: 'asc' } }),
       prisma.report.findMany({
@@ -39,6 +39,10 @@ export async function buildSummary(user: AuthUser, now: Date = new Date()): Prom
       missing: members.filter((member) => !done.has(member.id)).map(toUserDTO),
       pendingReview
     }
+  } else if (isAdmin(user)) {
+    // 非提交周：不算未交，但待审阅数仍要看
+    const pendingReview = await prisma.report.count({ where: { status: 'SUBMITTED' } })
+    admin = { missing: [], pendingReview }
   }
 
   return { week, mine: mine ? toReportDTO(mine) : null, isOverdue, deadline, admin }

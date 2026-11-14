@@ -135,15 +135,25 @@ describe('截止时间计算规则（纯函数）', () => {
   })
 
   it('默认规则为周日 18:00，损坏的设置值回落到默认', () => {
-    expect(ruleFromSettings({})).toEqual({ weekday: DEFAULT_WEEKDAY, time: DEFAULT_TIME })
+    expect(ruleFromSettings({})).toEqual({ weekday: DEFAULT_WEEKDAY, time: DEFAULT_TIME, frequency: 'WEEKLY' })
     expect(ruleFromSettings({ 'report.deadline.weekday': '9', 'report.deadline.time': '25:61' })).toEqual({
       weekday: 7,
-      time: '18:00'
+      time: '18:00',
+      frequency: 'WEEKLY'
     })
     expect(ruleFromSettings({ 'report.deadline.weekday': '3', 'report.deadline.time': '08:15' })).toEqual({
       weekday: 3,
-      time: '08:15'
+      time: '08:15',
+      frequency: 'WEEKLY'
     })
+    // 损坏的频次值回落到每周一次
+    expect(
+      ruleFromSettings({
+        'report.deadline.weekday': '3',
+        'report.deadline.time': '08:15',
+        'report.frequency': 'MONTHLY'
+      }).frequency
+    ).toBe('WEEKLY')
   })
 })
 
@@ -170,7 +180,11 @@ describe('截止时间端点', () => {
       body: { weekday: 5, time: '17:30' }
     })
     expect(patched.statusCode).toBe(200)
-    expect(json<{ weekday: number; time: string }>(patched.payload)).toEqual({ weekday: 5, time: '17:30' })
+    expect(json<{ weekday: number; time: string; frequency: string }>(patched.payload)).toEqual({
+      weekday: 5,
+      time: '17:30',
+      frequency: 'WEEKLY'
+    })
 
     const res = await call({ method: 'GET', url: '/api/settings/report-deadline?week=2025-W14', token: member.token })
     expect(res.statusCode).toBe(200)
@@ -184,7 +198,8 @@ describe('截止时间端点', () => {
     const stored = await prisma.appSetting.findMany({ orderBy: { key: 'asc' } })
     expect(stored.map((row) => [row.key, row.value])).toEqual([
       ['report.deadline.time', '17:30'],
-      ['report.deadline.weekday', '5']
+      ['report.deadline.weekday', '5'],
+      ['report.frequency', 'WEEKLY']
     ])
     const audit = await prisma.auditLog.findFirst({ where: { entityType: 'SETTING' } })
     expect(audit?.action).toBe('UPDATE')
@@ -308,5 +323,58 @@ describe('截止时间端点', () => {
       body: { deadline: '不是时间' }
     })
     expect(badOverride.statusCode).toBe(422)
+  })
+})
+
+describe('周报提交频次', () => {
+  it('保存并读回频次；非提交周 required=false 且给出下次提交周', async () => {
+    const saved = await call({
+      method: 'PATCH',
+      url: '/api/settings/report-deadline',
+      token: admin.token,
+      body: { weekday: 5, time: '17:30', frequency: 'BIWEEKLY_ODD' }
+    })
+    expect(saved.statusCode).toBe(200)
+    expect(json<{ frequency: string }>(saved.payload).frequency).toBe('BIWEEKLY_ODD')
+
+    // 2026-W45 是奇数周 -> 需要提交；2026-W46 偶数周 -> 不需要
+    const odd = await call({ method: 'GET', url: '/api/settings/report-deadline?week=2026-W45', token: member.token })
+    const oddDto = json<{ required: boolean; frequency: string; nextRequiredWeek: string | null }>(odd.payload)
+    expect(oddDto.required).toBe(true)
+    expect(oddDto.frequency).toBe('BIWEEKLY_ODD')
+
+    const even = await call({ method: 'GET', url: '/api/settings/report-deadline?week=2026-W46', token: member.token })
+    const evenDto = json<{ required: boolean; nextRequiredWeek: string | null }>(even.payload)
+    expect(evenDto.required).toBe(false)
+    expect(evenDto.nextRequiredWeek).toBe('2026-W47')
+  })
+
+  it('每周一次时任何一周都需要提交；成员不能改频次', async () => {
+    await call({
+      method: 'PATCH',
+      url: '/api/settings/report-deadline',
+      token: admin.token,
+      body: { weekday: 7, time: '18:00', frequency: 'WEEKLY' }
+    })
+    const weekly = await call({ method: 'GET', url: '/api/settings/report-deadline?week=2026-W46', token: member.token })
+    expect(json<{ required: boolean }>(weekly.payload).required).toBe(true)
+
+    const denied = await call({
+      method: 'PATCH',
+      url: '/api/settings/report-deadline',
+      token: member.token,
+      body: { weekday: 1, time: '09:00', frequency: 'BIWEEKLY_EVEN' }
+    })
+    expect(denied.statusCode).toBe(403)
+  })
+
+  it('非法频次返回 422', async () => {
+    const bad = await call({
+      method: 'PATCH',
+      url: '/api/settings/report-deadline',
+      token: admin.token,
+      body: { weekday: 5, time: '17:30', frequency: 'MONTHLY' }
+    })
+    expect(bad.statusCode).toBe(422)
   })
 })

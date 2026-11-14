@@ -187,6 +187,7 @@ body { background: var(--bg); }
   border: 1px solid rgba(37, 99, 235, 0.16);
 }
 .notice-danger { background: #fdecec; color: #b91c1c; border-color: rgba(220, 38, 38, 0.18); }
+.notice-info { background: #eef4ff; color: #1e40af; border-color: rgba(47, 111, 237, 0.18); }
 .notice svg { flex: 0 0 auto; }
 
 /* ── 统计卡 + 图标片 ── */

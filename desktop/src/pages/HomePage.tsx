@@ -7,6 +7,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { Badge, Button, Card, Spinner, useToast } from '../ui'
 import { Icon, type IconName } from '../ui/icons'
 import { ReportStatusBadge } from './reports/ReportStatusBadge'
+import { REPORT_FREQUENCY_LABEL } from '@yeyu/shared'
 import { deadlineSourceLabel, formatDeadlineShort, isPastDeadline } from './reports/deadline'
 
 function countdownText(deadlineIso?: string | null): string {
@@ -65,6 +66,8 @@ export default function HomePage() {
   const pendingReview = summary?.admin?.pendingReview ?? 0
   const statusText = mine ? REPORT_STATUS_LABEL[mine.status] : '未写'
   const needsWork = !mine || mine.status === 'DRAFT' || mine.status === 'REJECTED'
+  // 单周 / 双周频次：非提交周不催交、不算逾期
+  const notRequired = deadline ? !deadline.required : false
 
   const quickLinks: Array<{ to: string; label: string; hint: string; icon: IconName; accent: string; admin?: boolean }> = [
     { to: '/reports', label: '我的周报', hint: '查看与撰写', icon: 'file', accent: 'violet' },
@@ -83,10 +86,23 @@ export default function HomePage() {
           </span>
           <h1>你好，{user?.name ?? ''}</h1>
           <p className="hero-sub">
-            本周周报
-            <strong className={needsWork ? 'hero-strong-warn' : 'hero-strong-ok'}>{statusText}</strong>
-            ，截止 {formatDeadlineShort(deadline?.deadline)}
-            <span className="hero-sub-dim">（{deadline ? deadlineSourceLabel(deadline) : '规则：周日 18:00'}）</span>
+            {notRequired ? (
+              <>
+                本周 <strong className="hero-strong-ok">{summary?.week ?? ''}</strong> 不提交周报
+                {deadline?.nextRequiredWeek ? (
+                  <span className="hero-sub-dim">
+                    （下次提交周 {deadline.nextRequiredWeek}，按「{REPORT_FREQUENCY_LABEL[deadline.frequency]}」）
+                  </span>
+                ) : null}
+              </>
+            ) : (
+              <>
+                本周周报
+                <strong className={needsWork ? 'hero-strong-warn' : 'hero-strong-ok'}>{statusText}</strong>
+                ，截止 {formatDeadlineShort(deadline?.deadline)}
+                <span className="hero-sub-dim">（{deadline ? deadlineSourceLabel(deadline) : '规则：周日 18:00'}）</span>
+              </>
+            )}
           </p>
           <div className="hero-actions">
             {mine ? (
@@ -108,9 +124,11 @@ export default function HomePage() {
 
         <div className="hero-side">
           <div className={overdue ? 'hero-clock hero-clock-danger' : 'hero-clock'}>
-            <span className="hero-clock-label">{overdue ? '已逾期' : '距离截止'}</span>
-            <strong className="hero-clock-value">{overdue ? countdownText(deadline?.deadline).replace('已逾期 ', '') : countdownText(deadline?.deadline)}</strong>
-            <span className="hero-clock-foot">{formatDeadlineShort(deadline?.deadline)} 截止</span>
+            <span className="hero-clock-label">{notRequired ? '本周无需提交' : overdue ? '已逾期' : '距离截止'}</span>
+            <strong className="hero-clock-value">
+              {notRequired ? deadline?.nextRequiredWeek ?? '—' : overdue ? countdownText(deadline?.deadline).replace('已逾期 ', '') : countdownText(deadline?.deadline)}
+            </strong>
+            <span className="hero-clock-foot">{notRequired ? '下次提交周' : formatDeadlineShort(deadline?.deadline) + ' 截止'}</span>
           </div>
           {isAdmin ? (
             <div className="hero-side-row">
@@ -124,7 +142,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {overdue ? (
+      {notRequired ? (
+        <div className="notice notice-info">
+          <Icon name="calendar" size={16} />
+          <span>
+            按当前设置「{deadline ? REPORT_FREQUENCY_LABEL[deadline.frequency] : '每周一次'}」，本周（{summary?.week ?? ''}）不需要提交周报
+            {deadline?.nextRequiredWeek ? '，下次提交周是 ' + deadline.nextRequiredWeek : ''}。仍可提前写，但不会计入未交。
+          </span>
+        </div>
+      ) : overdue ? (
         <div className="notice notice-danger">
           <Icon name="alert" size={16} />
           <span>本周周报还没提交（截止 {formatDeadlineShort(deadline?.deadline)}）。逾期仍可提交，但会被标记为「迟交」。</span>
@@ -204,7 +230,7 @@ export default function HomePage() {
 
           {missing.length === 0 ? (
             <p className="muted" style={{ marginTop: 12 }}>
-              本周所有成员都已提交周报。
+              {notRequired ? '本周不是提交周，未交统计已跳过。' : '本周所有成员都已提交周报。'}
             </p>
           ) : (
             <ul className="todo-list">

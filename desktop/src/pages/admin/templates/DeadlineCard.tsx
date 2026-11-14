@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
-import type { DeadlineDTO } from '@yeyu/shared'
+import { DEFAULT_REPORT_FREQUENCY, REPORT_FREQUENCIES, REPORT_FREQUENCY_LABEL } from '@yeyu/shared'
+import type { DeadlineDTO, ReportFrequency } from '@yeyu/shared'
 import { formatDateTime } from '../../../api/client'
 import { Badge, Button, Card, Field, Input, Select, Spinner, useToast } from '../../../ui'
 import { WEEKDAY_LABELS, deadlineSourceLabel, fromDateTimeLocalValue, toDateTimeLocalValue } from '../../reports/deadline'
 import type { DeadlineOverrideItem } from './shared'
 
 interface DeadlineCardProps {
-  rule: { weekday: number; time: string }
+  rule: { weekday: number; time: string; frequency: ReportFrequency }
   currentWeek: string
   deadline: DeadlineDTO | null
   overrides: DeadlineOverrideItem[]
   loading: boolean
-  onSaveRule(weekday: number, time: string): Promise<void>
+  onSaveRule(weekday: number, time: string, frequency: ReportFrequency): Promise<void>
   onSaveOverride(week: string, isoDeadline: string, reason: string): Promise<void>
   onDeleteOverride(week: string): Promise<void>
 }
@@ -29,6 +30,7 @@ export function DeadlineCard({
   const toast = useToast()
   const [weekday, setWeekday] = useState(rule.weekday)
   const [time, setTime] = useState(rule.time)
+  const [frequency, setFrequency] = useState<ReportFrequency>(rule.frequency ?? DEFAULT_REPORT_FREQUENCY)
   const [savingRule, setSavingRule] = useState(false)
   const [overrideWeek, setOverrideWeek] = useState(currentWeek)
   const [overrideAt, setOverrideAt] = useState(() => toDateTimeLocalValue(deadline?.deadline ?? new Date()))
@@ -39,12 +41,13 @@ export function DeadlineCard({
   useEffect(() => {
     setWeekday(rule.weekday)
     setTime(rule.time)
-  }, [rule.weekday, rule.time])
+    setFrequency(rule.frequency ?? DEFAULT_REPORT_FREQUENCY)
+  }, [rule.weekday, rule.time, rule.frequency])
 
   const saveRule = async () => {
     setSavingRule(true)
     try {
-      await onSaveRule(weekday, time)
+      await onSaveRule(weekday, time, frequency)
     } finally {
       setSavingRule(false)
     }
@@ -98,12 +101,26 @@ export function DeadlineCard({
             <Field label="截止时间" hint="按本地时区 HH:mm">
               <Input type="time" value={time} onChange={(event) => setTime(event.target.value)} />
             </Field>
+            <Field label="提交频次" hint="单周 = ISO 奇数周，双周 = 偶数周；非提交周不计未交、不算逾期">
+              <Select value={frequency} onChange={(event) => setFrequency(event.target.value as ReportFrequency)}>
+                {REPORT_FREQUENCIES.map((item) => (
+                  <option key={item} value={item}>
+                    {REPORT_FREQUENCY_LABEL[item]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
             <div className="span-2">
               <div className="toolbar">
                 <Button variant="primary" loading={savingRule} onClick={() => void saveRule()}>
                   保存截止规则
                 </Button>
-                {deadline ? (
+                {deadline && !deadline.required ? (
+                  <span className="muted">
+                    本周 {deadline.week} 不是提交周
+                    {deadline.nextRequiredWeek ? '，下次提交周 ' + deadline.nextRequiredWeek : ''}
+                  </span>
+                ) : deadline ? (
                   <span className="muted">
                     本周截止 {formatDateTime(deadline.deadline)}（
                     {deadline.source === 'OVERRIDE' ? (
