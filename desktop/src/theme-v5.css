@@ -72,6 +72,40 @@ table.table td:nth-child(2), table.table td:nth-child(9) { white-space: normal; 
 .card-body h4:first-child { margin-top: 0; }
 .form-grid .toolbar { margin: 0; }
 
+/* 备忘录 */
+.nav-badge {
+  margin-left: auto; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+  background: #ff5a5f; color: #fff; font-size: 11px; line-height: 18px; text-align: center; font-weight: 600;
+}
+.memo-add { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.memo-add .input { height: 34px; }
+.memo-add .grow { flex: 1 1 260px; }
+.memo-groups { display: flex; flex-direction: column; gap: 14px; }
+.memo-group-title { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; }
+.memo-group-title.danger { color: #c0392b; }
+.memo-group-count { font-size: 11px; color: var(--ink-faint); }
+.memo-row {
+  display: flex; align-items: flex-start; gap: 10px; padding: 9px 10px; border-radius: 9px;
+  border: 1px solid transparent; background: #fbfcfe;
+}
+.memo-row + .memo-row { margin-top: 4px; }
+.memo-row:hover { border-color: #e4ebf6; }
+.memo-row.overdue { background: #fdf3f2; border-color: #f6dcd8; }
+.memo-row.done .memo-title { color: var(--ink-faint); text-decoration: line-through; }
+.memo-check {
+  flex: 0 0 auto; width: 18px; height: 18px; margin-top: 2px; border-radius: 5px;
+  border: 1.5px solid #c8d4e6; background: #fff; display: grid; place-items: center; cursor: pointer; color: #fff;
+}
+.memo-check:hover { border-color: var(--brand); }
+.memo-check.checked { background: var(--brand); border-color: var(--brand); }
+.memo-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.memo-title { font-size: 13.5px; color: var(--ink); word-break: break-word; }
+.memo-note { font-size: 12px; color: var(--ink-soft); }
+.memo-due { font-size: 11.5px; color: var(--ink-faint); }
+.memo-due.danger { color: #c0392b; }
+.memo-actions { flex: 0 0 auto; display: flex; gap: 2px; }
+.memo-done-block { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
+
 /* 侧边栏「检查更新」与更新弹窗 */
 .sidebar-update {
   display: flex; align-items: center; gap: 6px; margin: 6px 12px 2px; padding: 7px 10px;

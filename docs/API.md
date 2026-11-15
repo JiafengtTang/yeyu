@@ -241,3 +241,23 @@ Obsidian 风格的轻量笔记系统：日报按天归档，另有自由笔记�
 - `GET /api/reports/summary`：非提交周时 `isOverdue` 恒为 false，`admin.missing` 返回空数组（待审阅数照常统计）。
 - 周报本身仍以 ISO 周为单位，频次只决定**哪几周需要提交**；非提交周仍可提前写，但不算未交。
 
+
+
+## 2C. 备忘录（待办，仅本人可见）
+
+轻量待办清单：勾掉即完成，可设截止时间，到期在应用内提醒。
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/memos?status=open|done|all&q=&page=&pageSize=` | 列表，默认只返回未完成；`q` 搜内容与备注 |
+| POST | `/api/memos` | 新建：`{ title, note?, dueAt? }`（`dueAt` 为 ISO 时间，可空） |
+| PATCH | `/api/memos/:id` | 改内容 / 备注 / 截止时间；`{ done: true }` 写 `doneAt`，`false` 清空；`{ reminded: true }` 记为已提醒 |
+| DELETE | `/api/memos/:id` | 删除 |
+| GET | `/api/memos/summary` | `{ openCount, overdueCount, todayCount, dueNow[], today[] }` |
+
+- `MemoDTO.overdue`：未完成且已过截止时间（服务端按当前时间计算）。
+- **提醒机制**：客户端每 60 秒拉一次 `summary`；`dueNow` 返回「到点或已逾期、且 `remindedAt` 为空」的条目，
+  客户端弹 toast 后回写 `{ reminded: true }`，因此**同一条只提醒一次**；改了截止时间会重置提醒。
+- 侧边栏「备忘录」显示逾期数角标；工作台另有「我的待办」卡片展示今天到期的条目。
+- 数据模型：`Memo`（`ownerId/title/note/dueAt/done/doneAt/remindedAt`），全部接口只操作本人数据，越权一律 404。
+

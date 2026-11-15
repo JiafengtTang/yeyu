@@ -12,7 +12,9 @@ import ReportsPage from './pages/ReportsPage'
 import ReportEditorPage from './pages/ReportEditorPage'
 import ReviewPage from './pages/ReviewPage'
 import NotesPage from './pages/NotesPage'
+import MemosPage from './pages/MemosPage'
 import { UpdateChecker } from './ui/UpdateChecker'
+import { useMemoWatcher } from './memos/useMemoWatcher'
 import AdminUsersPage from './pages/AdminUsersPage'
 import TemplatesPage from './pages/admin/TemplatesPage'
 
@@ -30,6 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/assets', label: '资产台账', icon: 'layers', accent: 'teal' },
   { to: '/reports', label: '我的周报', icon: 'file', accent: 'violet' },
   { to: '/notes', label: '笔记', icon: 'sparkles', accent: 'teal' },
+  { to: '/memos', label: '备忘录', icon: 'checkSquare', accent: 'amber' },
   { to: '/reviews', label: '周报审阅', icon: 'checkSquare', accent: 'amber', admin: true },
   { to: '/admin/users', label: '用户与权限', icon: 'users', accent: 'cyan', admin: true },
   { to: '/admin/templates', label: '模版与截止', icon: 'sliders', accent: 'rose', admin: true }
@@ -40,6 +43,7 @@ const TITLES: Record<string, string> = {
   '/assets': '资产台账',
   '/reports': '我的周报',
   '/notes': '笔记与日报',
+  '/memos': '备忘录',
   '/reviews': '周报审阅',
   '/admin/users': '用户与权限',
   '/admin/templates': '模版与截止'
@@ -55,6 +59,7 @@ function Guard({ adminOnly = false, children }: { adminOnly?: boolean; children:
 
 function Shell({ children }: { children: ReactNode }) {
   const { user, isAdmin, logout } = useAuth()
+  const { summary: memoSummary } = useMemoWatcher()
   const location = useLocation()
   const title = location.pathname.startsWith('/reports/') ? '周报编辑' : TITLES[location.pathname] ?? '页屿'
   const initial = (user?.name ?? '?').trim().slice(0, 1)
@@ -82,6 +87,11 @@ function Shell({ children }: { children: ReactNode }) {
                 <Icon name={item.icon} size={15} strokeWidth={1.9} />
               </span>
               <span className="nav-label">{item.label}</span>
+              {item.to === '/memos' && memoSummary.overdueCount > 0 ? (
+                <span className="nav-badge" title={memoSummary.overdueCount + ' 条已逾期'}>
+                  {memoSummary.overdueCount}
+                </span>
+              ) : null}
             </NavLink>
           ))}
         </nav>
@@ -134,6 +144,7 @@ export default function App() {
       <Route path="/reports" element={<AuthedLayout><ReportsPage /></AuthedLayout>} />
       <Route path="/reports/:id" element={<AuthedLayout><ReportEditorPage /></AuthedLayout>} />
       <Route path="/notes" element={<AuthedLayout><NotesPage /></AuthedLayout>} />
+      <Route path="/memos" element={<AuthedLayout><MemosPage /></AuthedLayout>} />
       <Route path="/reviews" element={<AuthedLayout adminOnly><ReviewPage /></AuthedLayout>} />
       <Route path="/admin/users" element={<AuthedLayout adminOnly><AdminUsersPage /></AuthedLayout>} />
       <Route path="/admin/templates" element={<AuthedLayout adminOnly><TemplatesPage /></AuthedLayout>} />

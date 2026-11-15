@@ -10,6 +10,7 @@ import { registerTemplatesModule } from './modules/templates/index'
 import { registerSettingsModule } from './modules/settings/index'
 import { registerGroupsModule } from './modules/groups/index'
 import { registerNotesModule } from './modules/notes/index'
+import { registerMemosModule } from './modules/memos/index'
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -27,6 +28,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerUsersModule(app)
   await registerGroupsModule(app)
   await registerNotesModule(app)
+  await registerMemosModule(app)
   await registerAssetsModule(app)
   await registerReportsModule(app)
   await registerTemplatesModule(app)

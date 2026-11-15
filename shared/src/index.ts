@@ -594,3 +594,52 @@ export function nextReportWeek(fromWeek: string, frequency: ReportFrequency): st
   }
   return null
 }
+
+/* ────────────────────────────── 备忘录（待办） ────────────────────────────── */
+
+export interface MemoDTO {
+  id: string
+  title: string
+  note: string | null
+  dueAt: string | null
+  done: boolean
+  doneAt: string | null
+  createdAt: string
+  updatedAt: string
+  /** 已过截止时间且未完成 */
+  overdue: boolean
+}
+
+export interface MemoSummaryDTO {
+  openCount: number
+  overdueCount: number
+  todayCount: number
+  /** 到点（或已逾期）且尚未提醒过的 */
+  dueNow: MemoDTO[]
+  /** 今天到期且未完成的（最多 5 条，给工作台） */
+  today: MemoDTO[]
+}
+
+export const MEMO_STATUSES = ['open', 'done', 'all'] as const
+export type MemoStatus = (typeof MEMO_STATUSES)[number]
+
+export const memoInputSchema = z.object({
+  title: z.string().trim().min(1, '内容不能为空').max(200, '最多 200 字'),
+  note: z.string().trim().max(2000, '备注最多 2000 字').optional(),
+  dueAt: z.string().datetime({ offset: true }).nullable().optional()
+})
+
+export const memoPatchSchema = z.object({
+  title: z.string().trim().min(1, '内容不能为空').max(200, '最多 200 字').optional(),
+  note: z.string().trim().max(2000).nullable().optional(),
+  dueAt: z.string().datetime({ offset: true }).nullable().optional(),
+  done: z.boolean().optional(),
+  reminded: z.boolean().optional()
+})
+
+export const memoQuerySchema = z.object({
+  status: z.enum(MEMO_STATUSES).optional(),
+  q: z.string().max(80).optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  pageSize: z.coerce.number().int().min(1).max(200).optional()
+})

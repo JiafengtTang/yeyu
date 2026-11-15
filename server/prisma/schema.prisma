@@ -34,6 +34,25 @@ model User {
   group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   notes Note[]
+  memos Memo[]
+}
+
+/// 备忘录（待办）：仅本人可见，可设截止时间，到期在应用内提醒
+model Memo {
+  id         String    @id @default(cuid())
+  ownerId    String
+  owner      User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title      String
+  note       String?
+  dueAt      DateTime?
+  done       Boolean   @default(false)
+  doneAt     DateTime?
+  remindedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([ownerId, done])
+  @@index([ownerId, dueAt])
 }
 
 /// 笔记 / 日报（仅本人可见）。日报用 kind=DAILY + day=YYYY-MM-DD 唯一标识

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { ReportDTO, ReportSummaryDTO } from '@yeyu/shared'
+import type { MemoSummaryDTO, ReportDTO, ReportSummaryDTO } from '@yeyu/shared'
 import { REPORT_STATUS_LABEL } from '@yeyu/shared'
 import { api, apiErrorMessage, formatDate, formatDateTime } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
@@ -25,6 +25,7 @@ export default function HomePage() {
   const toast = useToast()
   const { user, isAdmin } = useAuth()
   const [summary, setSummary] = useState<ReportSummaryDTO | null>(null)
+  const [memos, setMemos] = useState<MemoSummaryDTO | null>(null)
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
 
@@ -41,6 +42,18 @@ export default function HomePage() {
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    let alive = true
+    void api<MemoSummaryDTO>('/api/memos/summary')
+      .then((next) => {
+        if (alive) setMemos(next)
+      })
+      .catch(() => undefined)
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const createThisWeek = async () => {
     setCreating(true)
@@ -199,6 +212,43 @@ export default function HomePage() {
           </div>
         </Card>
       ) : null}
+
+      <Card
+        title={<span className="card-title-with-icon"><Icon name="checkSquare" size={15} />我的待办</span>}
+        extra={
+          <Button className="btn-sm" variant="ghost" onClick={() => navigate('/memos')}>
+            全部（{memos?.openCount ?? 0}）
+            <Icon name="arrowRight" size={14} />
+          </Button>
+        }
+      >
+        {memos && memos.today.length > 0 ? (
+          <div className="memo-groups">
+            <div className="memo-group">
+              <div className="memo-group-title">
+                今天到期<span className="memo-group-count">{memos.todayCount}</span>
+              </div>
+              {memos.today.map((memo) => (
+                <div key={memo.id} className={'memo-row' + (memo.overdue ? ' overdue' : '')}>
+                  <span className="memo-body">
+                    <span className="memo-title">{memo.title}</span>
+                    <span className={'memo-due' + (memo.overdue ? ' danger' : '')}>
+                      {memo.overdue ? '已逾期 · ' : ''}
+                      {formatDateTime(memo.dueAt)}
+                    </span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="muted">
+            {memos && memos.overdueCount > 0
+              ? '有 ' + memos.overdueCount + ' 条已逾期，去「备忘录」看看。'
+              : '今天没有到期的待办。'}
+          </p>
+        )}
+      </Card>
 
       {isAdmin ? (
         <Card
