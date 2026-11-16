@@ -253,6 +253,14 @@ body { background: var(--bg); }
 .filter-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
 .filter-actions .btn { flex: 0 0 auto; }
 .toolbar > .muted { white-space: nowrap; }
+/* 带 grow 的说明文字要能换行：占满剩余宽度，避免长句压到右侧按钮上 */
+.toolbar > .muted.grow,
+.toolbar > .grow.muted {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.6;
+}
 
 /* ── 编辑器 ── */
 .rich-toolbar { gap: 0; padding: 5px 6px; }
