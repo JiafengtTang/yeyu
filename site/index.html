@@ -11,9 +11,8 @@
 <link rel="icon" href="assets/logo.png" />
 <style>
   :root {
-    --navy: #0b1220;
-    --navy-2: #121c30;
-    --ink: #101828;
+    --navy: #070d18;
+    --ink: #0d1526;
     --ink-soft: #475467;
     --ink-faint: #98a2b3;
     --brand: #2f6fed;
@@ -28,19 +27,34 @@
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
     color: var(--ink);
-    background: #f6f8fc;
+    background: var(--navy);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
   a { color: inherit; text-decoration: none; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px; }
+
+  /* ── 动态背景 ── */
+  #bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
+  .bg-veil {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(47,111,237,0.10) 0%, rgba(7,13,24,0) 58%),
+      linear-gradient(180deg, rgba(7,13,24,0.06) 0%, rgba(7,13,24,0.34) 58%, rgba(7,13,24,0.90) 100%);
+  }
+  .page { position: relative; z-index: 2; }
+  .light {
+    background: linear-gradient(180deg, rgba(246,248,252,0.97) 0%, rgba(246,248,252,1) 8%, rgba(246,248,252,1) 92%, rgba(246,248,252,0.97) 100%);
+    backdrop-filter: blur(2px);
+  }
 
   header.nav {
-    position: sticky; top: 0; z-index: 20;
-    background: rgba(11, 18, 32, 0.92);
-    backdrop-filter: blur(14px);
+    position: sticky; top: 0; z-index: 30;
+    background: rgba(7, 13, 24, 0.72);
+    backdrop-filter: blur(16px) saturate(140%);
     border-bottom: 1px solid rgba(255,255,255,0.08);
   }
   header.nav .wrap { display: flex; align-items: center; gap: 14px; height: 62px; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px; }
   .brand { display: flex; align-items: center; gap: 9px; color: #fff; font-weight: 650; letter-spacing: 0.02em; }
   .brand img { width: 26px; height: 26px; border-radius: 7px; }
   .brand small { display: block; font-weight: 400; font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 0.06em; }
@@ -48,98 +62,123 @@
   header.nav nav a:hover { color: #fff; }
   @media (max-width: 720px) { header.nav nav { display: none; } }
 
-  .hero {
-    background:
-      radial-gradient(110% 80% at 78% 0%, rgba(124,92,240,0.30) 0%, rgba(11,18,32,0) 60%),
-      radial-gradient(90% 70% at 12% 8%, rgba(47,111,237,0.34) 0%, rgba(11,18,32,0) 62%),
-      linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
-    color: #fff;
-    padding: 76px 0 88px;
-  }
-  .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 46px; align-items: center; }
-  @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; gap: 32px; } .hero { padding: 54px 0 62px; } }
+  .hero { color: #fff; padding: 84px 0 96px; }
+  .hero-grid { display: grid; grid-template-columns: 1.06fr 0.94fr; gap: 46px; align-items: center; }
+  @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; gap: 32px; } .hero { padding: 56px 0 64px; } }
   .pill {
     display: inline-flex; align-items: center; gap: 7px;
-    padding: 5px 11px; border-radius: 999px; font-size: 12px;
-    background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.16); color: rgba(255,255,255,0.82);
+    padding: 5px 12px; border-radius: 999px; font-size: 12px;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.86);
+    backdrop-filter: blur(8px);
   }
   .pill i { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,0.22); }
-  h1 { font-size: 42px; line-height: 1.22; margin: 18px 0 14px; letter-spacing: -0.01em; }
+  h1 { font-size: 44px; line-height: 1.2; margin: 18px 0 16px; letter-spacing: -0.012em; text-shadow: 0 8px 40px rgba(0,0,0,0.45); }
   @media (max-width: 720px) { h1 { font-size: 31px; } }
-  h1 em { font-style: normal; background: linear-gradient(96deg, #8ab4ff, #c8a9ff 55%, #ffd7a8); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .lede { font-size: 16px; line-height: 1.8; color: rgba(255,255,255,0.74); margin: 0 0 26px; max-width: 540px; }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(96deg, #8ab4ff 0%, #c8a9ff 48%, #ffd7a8 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    background-size: 180% 100%;
+    animation: hue 7s ease-in-out infinite alternate;
+  }
+  @keyframes hue { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+  .lede { font-size: 16px; line-height: 1.85; color: rgba(255,255,255,0.76); margin: 0 0 28px; max-width: 540px; text-shadow: 0 2px 18px rgba(0,0,0,0.4); }
 
   .downloads { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
   .btn {
-    display: inline-flex; align-items: center; gap: 10px;
+    display: inline-flex; align-items: center; gap: 11px;
     padding: 13px 20px; border-radius: 12px; font-size: 14.5px; font-weight: 600;
-    border: 1px solid transparent; cursor: pointer; transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+    border: 1px solid transparent; cursor: pointer;
+    transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
   }
-  .btn:hover { transform: translateY(-1px); }
-  .btn-primary { background: linear-gradient(180deg, #3d7cf7, #2f6fed); color: #fff; box-shadow: 0 14px 28px -16px rgba(47,111,237,0.95); }
-  .btn-primary:hover { box-shadow: 0 18px 32px -16px rgba(47,111,237,1); }
-  .btn-ghost { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.2); }
-  .btn-ghost:hover { background: rgba(255,255,255,0.14); }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: linear-gradient(180deg, #3d7cf7, #2f6fed); color: #fff; box-shadow: 0 16px 32px -16px rgba(47,111,237,0.95); }
+  .btn-primary:hover { box-shadow: 0 22px 38px -16px rgba(47,111,237,1); }
+  .btn-ghost { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.22); backdrop-filter: blur(10px); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.16); }
   .btn > span { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.35; }
   .btn small { display: block; font-weight: 400; opacity: 0.75; font-size: 11.5px; margin-top: 2px; }
   .btn svg { flex: 0 0 auto; }
-  .meta { margin-top: 14px; font-size: 12.5px; color: rgba(255,255,255,0.5); line-height: 1.7; }
+  .meta { margin-top: 16px; font-size: 12.5px; color: rgba(255,255,255,0.52); line-height: 1.75; }
   .meta code { background: rgba(255,255,255,0.1); padding: 1.5px 6px; border-radius: 5px; font-size: 11.5px; }
 
   .frame {
     border-radius: 14px; overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.16);
-    box-shadow: 0 34px 70px -30px rgba(0,0,0,0.85);
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: 0 40px 80px -34px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.04);
     background: #0d1526;
+    transform: perspective(1400px) rotateY(-4deg) rotateX(2deg);
+    transition: transform .5s ease;
   }
+  .frame:hover { transform: perspective(1400px) rotateY(0) rotateX(0); }
   .frame-bar { display: flex; gap: 6px; padding: 9px 12px; background: rgba(255,255,255,0.06); }
   .frame-bar span { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.22); }
   .frame img { display: block; width: 100%; height: auto; }
 
-  section { padding: 74px 0; }
+  section { padding: 76px 0; }
   .section-title { font-size: 27px; margin: 0 0 10px; letter-spacing: -0.01em; }
-  .section-sub { color: var(--ink-soft); font-size: 14.5px; margin: 0 0 34px; line-height: 1.8; }
+  .section-sub { color: var(--ink-soft); font-size: 14.5px; margin: 0 0 34px; line-height: 1.85; }
 
   .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
   @media (max-width: 940px) { .features { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 640px) { .features { grid-template-columns: 1fr; } }
   .feature {
     background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px;
+    transition: transform .18s ease, box-shadow .18s ease;
   }
+  .feature:hover { transform: translateY(-3px); box-shadow: 0 22px 40px -28px rgba(16,24,40,0.35); }
   .feature .ico {
     width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 14px;
-    background: linear-gradient(140deg, rgba(47,111,237,0.14), rgba(124,92,240,0.14)); color: var(--brand);
+    background: linear-gradient(140deg, rgba(47,111,237,0.14), rgba(124,92,240,0.16)); color: var(--brand);
   }
   .feature h3 { font-size: 15.5px; margin: 0 0 8px; }
-  .feature p { margin: 0; font-size: 13.5px; line-height: 1.75; color: var(--ink-soft); }
+  .feature p { margin: 0; font-size: 13.5px; line-height: 1.78; color: var(--ink-soft); }
+  .feature code { background: #f1f5fb; border-radius: 5px; padding: 1px 5px; font-size: 12.5px; }
 
-  .shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .shots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
   @media (max-width: 940px) { .shots { grid-template-columns: 1fr; } }
   .shot { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
   .shot img { display: block; width: 100%; }
   .shot div { padding: 13px 16px 15px; font-size: 13px; color: var(--ink-soft); }
   .shot strong { display: block; color: var(--ink); font-size: 13.5px; margin-bottom: 4px; }
 
-  .deploy { background: var(--navy); color: #fff; border-radius: 20px; padding: 34px 34px 30px; }
-  .deploy h3 { margin: 0 0 10px; font-size: 20px; }
-  .deploy p { color: rgba(255,255,255,0.72); font-size: 14px; line-height: 1.85; margin: 0 0 18px; }
+  .deploy { background: linear-gradient(160deg, #0a1120, #0d1830 60%, #101c38); color: #fff; border-radius: 20px; padding: 36px 34px 32px; position: relative; overflow: hidden; }
+  .deploy::after {
+    content: ''; position: absolute; width: 420px; height: 420px; right: -120px; top: -160px;
+    background: radial-gradient(circle, rgba(124,92,240,0.35), rgba(124,92,240,0) 68%);
+    animation: float 12s ease-in-out infinite alternate;
+  }
+  @keyframes float { from { transform: translate3d(0,0,0); } to { transform: translate3d(-26px, 30px, 0); } }
+  .deploy h3 { margin: 0 0 10px; font-size: 20px; position: relative; }
+  .deploy p { color: rgba(255,255,255,0.74); font-size: 14px; line-height: 1.9; margin: 0 0 18px; position: relative; }
   .deploy pre {
-    margin: 0; padding: 16px 18px; border-radius: 12px; overflow-x: auto;
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-    font-size: 12.5px; line-height: 1.9; color: #d8e4ff;
+    margin: 0; padding: 16px 18px; border-radius: 12px; overflow-x: auto; position: relative;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.13);
+    font-size: 12.5px; line-height: 1.95; color: #d8e4ff;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
-  .deploy .kv { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
-  .deploy .kv span { font-size: 12.5px; color: rgba(255,255,255,0.72); background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); padding: 5px 10px; border-radius: 999px; }
+  .deploy .kv { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; position: relative; }
+  .deploy .kv span { font-size: 12.5px; color: rgba(255,255,255,0.74); background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.13); padding: 5px 11px; border-radius: 999px; }
 
-  footer { padding: 34px 0 46px; color: var(--ink-faint); font-size: 13px; }
+  footer { color: rgba(255,255,255,0.5); font-size: 13px; padding: 40px 0 54px; }
   footer .wrap { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
-  footer a { color: var(--ink-soft); }
-  footer a:hover { color: var(--brand); }
+  footer a { color: rgba(255,255,255,0.72); }
+  footer a:hover { color: #fff; }
+
+  @media (prefers-reduced-motion: reduce) {
+    #bg { display: none; }
+    body { background: radial-gradient(120% 80% at 20% 0%, #14213d 0%, #070d18 60%); }
+    h1 em, .deploy::after { animation: none; }
+    .frame { transform: none; }
+  }
 </style>
 </head>
 <body>
 
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="bg-veil" aria-hidden="true"></div>
+
+<div class="page">
 <header class="nav">
   <div class="wrap">
     <a class="brand" href="#top">
@@ -187,87 +226,90 @@
 
       <div class="frame">
         <div class="frame-bar"><span></span><span></span><span></span></div>
-        <img src="assets/hero-home.jpg" alt="页屿工作台界面" />
+        <img src="assets/hero-home.jpg" alt="页屿工作台界面（演示数据）" />
       </div>
     </div>
   </section>
 
-  <section id="features">
-    <div class="wrap">
-      <h2 class="section-title">一个软件，覆盖组里那些琐碎但要留痕的事</h2>
-      <p class="section-sub">本地部署、SQLite 单文件、不依赖外部云服务；手机号注册 + 管理员审批，权限按角色和小组划分。</p>
+  <div class="light">
+    <section id="features">
+      <div class="wrap">
+        <h2 class="section-title">一个软件，覆盖组里那些琐碎但要留痕的事</h2>
+        <p class="section-sub">本地部署、SQLite 单文件、不依赖外部云服务；手机号注册 + 管理员审批，权限按角色和小组划分。</p>
 
-      <div class="features">
-        <div class="feature">
-          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4.5-9 4.5L3 7.5 12 3Z" /><path d="M3 12l9 4.5 9-4.5" /><path d="M3 16.5L12 21l9-4.5" /></svg></div>
-          <h3>资产台账</h3>
-          <p>编码、型号、价格、存放位置、责任人、使用小组、借用归还、盘点核对与审计日志；Excel 一键导入导出，成员只能改自己负责的资产。</p>
-        </div>
-        <div class="feature">
-          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" /><path d="M14 3v5h5" /><path d="M9 13h6" /><path d="M9 17h4" /></svg></div>
-          <h3>模版驱动的周报</h3>
-          <p>上传组里现成的 Word 周报模版，自动识别小节，逐节写图文、贴图即存。截止时间可设星期与时刻，还能选每周 / 单周 / 双周提交频次。</p>
-        </div>
-        <div class="feature">
-          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3" /><path d="M12 18v3" /><path d="M3 12h3" /><path d="M18 12h3" /><circle cx="12" cy="12" r="4.2" /></svg></div>
-          <h3>日报与笔记</h3>
-          <p>每天一条日报，另有自由笔记；<code>[[双向链接]]</code> 与反链、<code>#标签</code>、全文搜索、日历视图、关系图谱，导出 Markdown 随时搬走。</p>
-        </div>
-        <div class="feature">
-          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></div>
-          <h3>待办备忘录</h3>
-          <p>随手记一条待办，可设截止时间；逾期红底高亮，到点在软件里提醒你（同一条只提醒一次），侧边栏还有逾期角标。</p>
-        </div>
-        <div class="feature">
-          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V20" /><circle cx="9.5" cy="7" r="3.2" /><path d="M17 11a3 3 0 1 0 0-6" /><path d="M21 20v-1.5a3.6 3.6 0 0 0-2.6-3.4" /></svg></div>
-          <h3>成员与小组</h3>
-          <p>手机号注册、管理员审批；可建小组（方向 / 职能），成员归类后可批量筛选，资产归属也跟着小组走。</p>
-        </div>
-        <div class="feature">
-          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7" /><path d="M21 4v5h-5" /></svg></div>
-          <h3>应用内更新</h3>
-          <p>左下角「检查更新」直接查最新版本、显示更新说明、带进度下载安装包，装完即新版；不用再到处找链接。</p>
+        <div class="features">
+          <div class="feature">
+            <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4.5-9 4.5L3 7.5 12 3Z" /><path d="M3 12l9 4.5 9-4.5" /><path d="M3 16.5L12 21l9-4.5" /></svg></div>
+            <h3>资产台账</h3>
+            <p>编码、型号、价格、存放位置、责任人、使用小组、借用归还、盘点核对与审计日志；Excel 一键导入导出，成员只能改自己负责的资产。</p>
+          </div>
+          <div class="feature">
+            <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" /><path d="M14 3v5h5" /><path d="M9 13h6" /><path d="M9 17h4" /></svg></div>
+            <h3>模版驱动的周报</h3>
+            <p>上传组里现成的 Word 周报模版，自动识别小节，逐节写图文、贴图即存。截止时间可设星期与时刻，还能选每周 / 单周 / 双周提交频次。</p>
+          </div>
+          <div class="feature">
+            <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3" /><path d="M12 18v3" /><path d="M3 12h3" /><path d="M18 12h3" /><circle cx="12" cy="12" r="4.2" /></svg></div>
+            <h3>日报与笔记</h3>
+            <p>每天一条日报，另有自由笔记；<code>[[双向链接]]</code> 与反链、<code>#标签</code>、全文搜索、日历视图、关系图谱，导出 Markdown 随时搬走。</p>
+          </div>
+          <div class="feature">
+            <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></div>
+            <h3>待办备忘录</h3>
+            <p>随手记一条待办，可设截止时间；逾期红底高亮，到点在软件里提醒你（同一条只提醒一次），侧边栏还有逾期角标。</p>
+          </div>
+          <div class="feature">
+            <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V20" /><circle cx="9.5" cy="7" r="3.2" /><path d="M17 11a3 3 0 1 0 0-6" /><path d="M21 20v-1.5a3.6 3.6 0 0 0-2.6-3.4" /></svg></div>
+            <h3>成员与小组</h3>
+            <p>手机号注册、管理员审批；可建小组（方向 / 职能），成员归类后可批量筛选，资产归属也跟着小组走。</p>
+          </div>
+          <div class="feature">
+            <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7" /><path d="M21 4v5h-5" /></svg></div>
+            <h3>应用内更新</h3>
+            <p>左下角「检查更新」直接查最新版本、显示更新说明、带进度下载安装包，装完即新版；不用再到处找链接。</p>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section id="shots" style="padding-top: 0;">
-    <div class="wrap">
-      <h2 class="section-title">界面</h2>
-      <p class="section-sub">桌面端（Electron），登录是小窗，主界面是左侧导航 + 内容区，深浅两套主题配色一致。</p>
-      <div class="shots">
-        <div class="shot"><img src="assets/shot-assets.jpg" alt="资产台账" /><div><strong>资产台账</strong>筛选、行内编辑、附件与借用记录</div></div>
-        <div class="shot"><img src="assets/shot-notes.jpg" alt="笔记与日报" /><div><strong>笔记与日报</strong>双向链接、标签与关联面板</div></div>
-        <div class="shot"><img src="assets/shot-groups.jpg" alt="用户与权限" /><div><strong>成员与小组</strong>建组、归类、按组筛选</div></div>
+    <section id="shots" style="padding-top: 0;">
+      <div class="wrap">
+        <h2 class="section-title">界面</h2>
+        <p class="section-sub">桌面端（Electron），登录是小窗，主界面是左侧导航 + 内容区。以下截图为演示数据，不含真实信息。</p>
+        <div class="shots">
+          <div class="shot"><img src="assets/shot-assets.jpg" alt="资产台账" /><div><strong>资产台账</strong>筛选、使用小组、行内编辑、附件与借用记录</div></div>
+          <div class="shot"><img src="assets/shot-notes.jpg" alt="笔记与日报" /><div><strong>笔记与日报</strong>双向链接、标签与关联面板</div></div>
+          <div class="shot"><img src="assets/shot-memos.jpg" alt="备忘录" /><div><strong>待办备忘录</strong>逾期高亮、分组与到期提醒</div></div>
+          <div class="shot"><img src="assets/shot-groups.jpg" alt="用户与权限" /><div><strong>成员与小组</strong>建组、归类、按组筛选</div></div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section id="deploy" style="padding-top: 0;">
-    <div class="wrap">
-      <div class="deploy">
-        <h3>部署到自己的服务器</h3>
-        <p>
-          服务端是一个 Fastify 进程 + <strong>SQLite 单文件数据库</strong>，<strong>不需要另装 MySQL / PostgreSQL</strong>：
-          数据库就是容器里 <code style="color:#cfe0ff">/data/app.db</code> 这一个文件，启动时自动建表。
-          只要把 <code style="color:#cfe0ff">app.db</code> 和 <code style="color:#cfe0ff">uploads/</code> 放进同一个持久化卷（备份也只需备份这两样）即可。
-        </p>
-        <pre>cd deploy
+    <section id="deploy" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="deploy">
+          <h3>部署到自己的服务器</h3>
+          <p>
+            服务端是一个 Fastify 进程 + <strong>SQLite 单文件数据库</strong>，<strong>不需要另装 MySQL / PostgreSQL</strong>：
+            数据库就是容器里 <code style="color:#cfe0ff">/data/app.db</code> 这一个文件，启动时自动建表。
+            只要把 <code style="color:#cfe0ff">app.db</code> 和 <code style="color:#cfe0ff">uploads/</code> 放进同一个持久化卷（备份也只需备份这两样）即可。
+          </p>
+          <pre>cd deploy
 cp .env.example .env          # 填 JWT_SECRET（必填）
 docker compose up -d --build   # 首次启动自动建库建表
 docker compose exec server pnpm exec tsx prisma/seed.ts   # 创建首个管理员
 curl http://127.0.0.1:4000/api/health</pre>
-        <div class="kv">
-          <span>SQLite 单文件</span>
-          <span>单机部署（不支持多实例）</span>
-          <span>备份 = app.db + uploads</span>
-          <span>Node 24 · Fastify 4 · Prisma 5</span>
-          <span>Electron 33 客户端</span>
+          <div class="kv">
+            <span>SQLite 单文件</span>
+            <span>单机部署（不支持多实例）</span>
+            <span>备份 = app.db + uploads</span>
+            <span>Node 24 · Fastify 4 · Prisma 5</span>
+            <span>Electron 33 客户端</span>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 </main>
 
 <footer>
@@ -280,43 +322,165 @@ curl http://127.0.0.1:4000/api/health</pre>
     </span>
   </div>
 </footer>
+</div>
 
 <script>
+  /* ── 动态背景：极光色斑 + 漂浮粒子 ── */
   (function () {
+    var canvas = document.getElementById('bg')
+    if (!canvas) return
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) return
+    var ctx = canvas.getContext('2d')
+    var dpr = 1, w = 0, h = 0
+    var blobs = [
+      { hue: '47,111,237', x: 0.18, y: 0.12, r: 0.62, ax: 0.06, ay: 0.04, sx: 0.00013, sy: 0.00019, ph: 0.0 },
+      { hue: '124,92,240', x: 0.80, y: 0.18, r: 0.55, ax: 0.05, ay: 0.05, sx: 0.00017, sy: 0.00011, ph: 1.7 },
+      { hue: '255,168,110', x: 0.58, y: 0.62, r: 0.40, ax: 0.07, ay: 0.03, sx: 0.00009, sy: 0.00015, ph: 3.1 },
+      { hue: '56,189,248', x: 0.30, y: 0.52, r: 0.34, ax: 0.04, ay: 0.06, sx: 0.00021, sy: 0.00013, ph: 4.6 }
+    ]
+    var particles = []
+    function buildParticles() {
+      particles = []
+      var count = Math.min(84, Math.round(window.innerWidth / 22))
+      for (var i = 0; i < count; i += 1) {
+        particles.push({
+          x: Math.random(), y: Math.random(),
+          r: Math.random() * 1.5 + 0.4,
+          vy: (Math.random() * 0.000045 + 0.000012),
+          vx: (Math.random() - 0.5) * 0.00002,
+          a: Math.random() * 0.45 + 0.15,
+          tw: Math.random() * Math.PI * 2
+        })
+      }
+    }
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2)
+      w = canvas.width = Math.floor(window.innerWidth * dpr)
+      h = canvas.height = Math.floor(window.innerHeight * dpr)
+      canvas.style.width = window.innerWidth + 'px'
+      canvas.style.height = window.innerHeight + 'px'
+      buildParticles()
+    }
+    function draw(t) {
+      ctx.clearRect(0, 0, w, h)
+      ctx.globalCompositeOperation = 'lighter'
+      for (var i = 0; i < blobs.length; i += 1) {
+        var b = blobs[i]
+        var cx = (b.x + Math.sin(t * b.sx + b.ph) * b.ax) * w
+        var cy = (b.y + Math.cos(t * b.sy + b.ph) * b.ay) * h
+        var radius = b.r * Math.max(w, h) * (0.82 + 0.12 * Math.sin(t * 0.00021 + b.ph))
+        var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius)
+        g.addColorStop(0, 'rgba(' + b.hue + ',0.46)')
+        g.addColorStop(0.42, 'rgba(' + b.hue + ',0.16)')
+        g.addColorStop(1, 'rgba(' + b.hue + ',0)')
+        ctx.fillStyle = g
+        ctx.beginPath()
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      // 缓慢扫过的光束
+      for (var k = 0; k < 2; k += 1) {
+        var angle = (t * 0.000035) * (k === 0 ? 1 : -1.3) + k * 1.9
+        var bx = w * (0.5 + Math.cos(angle) * 0.42)
+        var bw = w * 0.34
+        var beam = ctx.createLinearGradient(bx - bw, 0, bx + bw, h * 0.9)
+        beam.addColorStop(0, 'rgba(120,170,255,0)')
+        beam.addColorStop(0.5, 'rgba(140,180,255,0.055)')
+        beam.addColorStop(1, 'rgba(120,170,255,0)')
+        ctx.save()
+        ctx.translate(bx, h * 0.45)
+        ctx.rotate(angle * 0.35)
+        ctx.translate(-bx, -h * 0.45)
+        ctx.fillStyle = beam
+        ctx.fillRect(bx - bw, 0, bw * 2, h)
+        ctx.restore()
+      }
+
+      ctx.globalCompositeOperation = 'source-over'
+      for (var j = 0; j < particles.length; j += 1) {
+        var p = particles[j]
+        p.y -= p.vy * 16
+        p.x += p.vx * 16
+        if (p.y < -0.05) { p.y = 1.05; p.x = Math.random() }
+        if (p.x < -0.05) p.x = 1.05
+        if (p.x > 1.05) p.x = -0.05
+        var alpha = p.a * (0.6 + 0.4 * Math.sin(t * 0.0016 + p.tw))
+        ctx.beginPath()
+        ctx.arc(p.x * w, p.y * h, p.r * dpr, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(198,220,255,' + alpha.toFixed(3) + ')'
+        ctx.fill()
+      }
+      raf = requestAnimationFrame(draw)
+    }
+    var raf = 0
+    window.addEventListener('resize', resize, { passive: true })
+    resize()
+    raf = requestAnimationFrame(draw)
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { cancelAnimationFrame(raf) }
+      else { raf = requestAnimationFrame(draw) }
+    })
+  })()
+
+  /* ── 下载按钮：读 GitHub 最新版本（带本地缓存，1 小时有效） ── */
+  ;(function () {
     var API = 'https://api.github.com/repos/JiafengtTang/yeyu/releases/latest'
+    var CACHE_KEY = 'yeyu.release.v1'
     var macLink = document.getElementById('dl-mac')
     var winLink = document.getElementById('dl-win')
     var macSize = document.getElementById('dl-mac-size')
     var winSize = document.getElementById('dl-win-size')
     var versionEl = document.getElementById('release-version')
     var badge = document.getElementById('release-badge')
+    function mb(bytes) { return bytes ? Math.round(bytes / 1024 / 1024) + ' MB' : '' }
 
-    function mb(bytes) {
-      return bytes ? Math.round(bytes / 1024 / 1024) + ' MB' : ''
+    function render(data) {
+      if (!data) return false
+      if (data.mac) { macLink.href = data.mac.url; macSize.textContent = 'Apple Silicon · ' + mb(data.mac.size) }
+      if (data.win) { winLink.href = data.win.url; winSize.textContent = 'x64 安装包 · ' + mb(data.win.size) }
+      var published = data.published ? new Date(data.published).toLocaleDateString('zh-CN') : ''
+      versionEl.textContent = '最新版本 ' + data.tag + (published ? '（' + published + ' 发布）' : '')
+      if (badge) badge.textContent = data.tag + ' · 开源 MIT'
+      return true
     }
 
-    fetch(API, { headers: { Accept: 'application/vnd.github+json' } })
+    var cached = null
+    try {
+      var raw = localStorage.getItem(CACHE_KEY)
+      if (raw) {
+        var parsed = JSON.parse(raw)
+        if (parsed && parsed.savedAt && Date.now() - parsed.savedAt < 3600 * 1000) cached = parsed.data
+      }
+    } catch (error) { cached = null }
+    render(cached)
+
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+    var timer = controller ? setTimeout(function () { controller.abort() }, 7000) : 0
+
+    fetch(API, {
+      headers: { Accept: 'application/vnd.github+json' },
+      signal: controller ? controller.signal : undefined
+    })
       .then(function (res) { return res.ok ? res.json() : Promise.reject(res.status) })
       .then(function (release) {
         var assets = release.assets || []
         var mac = assets.find(function (a) { return /\.dmg$/i.test(a.name) && /arm64/i.test(a.name) }) ||
                   assets.find(function (a) { return /\.dmg$/i.test(a.name) })
         var win = assets.find(function (a) { return /\.exe$/i.test(a.name) })
-        if (mac) {
-          macLink.href = mac.browser_download_url
-          macSize.textContent = 'Apple Silicon · ' + mb(mac.size)
+        var data = {
+          tag: release.tag_name,
+          published: release.published_at || '',
+          mac: mac ? { url: mac.browser_download_url, size: mac.size } : null,
+          win: win ? { url: win.browser_download_url, size: win.size } : null
         }
-        if (win) {
-          winLink.href = win.browser_download_url
-          winSize.textContent = 'x64 安装包 · ' + mb(win.size)
-        }
-        var published = release.published_at ? new Date(release.published_at).toLocaleDateString('zh-CN') : ''
-        versionEl.textContent = '最新版本 ' + release.tag_name + (published ? '（' + published + ' 发布）' : '')
-        if (badge) badge.textContent = release.tag_name + ' · 开源 MIT'
+        render(data)
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), data: data })) } catch (error) { /* 忽略配额错误 */ }
       })
       .catch(function () {
-        versionEl.textContent = '暂时取不到最新版本号，点下载按钮会跳到 GitHub Releases 页面'
+        if (!cached) versionEl.textContent = '暂时取不到最新版本号，点下载按钮会跳到 GitHub Releases 页面'
       })
+      .then(function () { if (timer) clearTimeout(timer) })
   })()
 </script>
 </body>
