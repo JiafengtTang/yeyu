@@ -42,9 +42,13 @@
       linear-gradient(180deg, rgba(7,13,24,0.06) 0%, rgba(7,13,24,0.34) 58%, rgba(7,13,24,0.90) 100%);
   }
   .page { position: relative; z-index: 2; }
+  /* 浅色正文做成一张「压上来」的纸：圆角 + 上方投影，边界干净且有意为之 */
   .light {
-    background: linear-gradient(180deg, rgba(246,248,252,0.97) 0%, rgba(246,248,252,1) 8%, rgba(246,248,252,1) 92%, rgba(246,248,252,0.97) 100%);
-    backdrop-filter: blur(2px);
+    position: relative;
+    margin-top: 26px;
+    background: #f6f8fc;
+    border-radius: 30px 30px 0 0;
+    box-shadow: 0 -34px 60px -44px rgba(0, 0, 0, 0.75), 0 -1px 0 rgba(255, 255, 255, 0.06);
   }
 
   header.nav {
@@ -141,7 +145,7 @@
   .use p { margin: 0; font-size: 13px; line-height: 1.8; color: var(--ink-soft); }
 
   /* 痛点区（深色） */
-  .pains { color: #fff; padding: 26px 0 84px; }
+  .pains { color: #fff; padding: 26px 0 40px; }
   .pains-title { font-size: 24px; margin: 0 0 26px; letter-spacing: -0.01em; color: rgba(255,255,255,0.92); }
   .pains-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
   @media (max-width: 1000px) { .pains-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -233,6 +237,104 @@
   footer a { color: rgba(255,255,255,0.72); }
   footer a:hover { color: #fff; }
 
+  /* ── 统一骨架：节奏 / 段落头 / 差异化卡片 ── */
+  :root {
+    --rhythm: 96px;
+    --rhythm-sm: 72px;
+    --gutter: 22px;
+  }
+  .wrap { padding: 0 var(--gutter); }
+
+  section { padding: var(--rhythm) 0; }
+  section.section { padding: var(--rhythm-sm) 0; }
+  section.section:first-of-type { padding-top: var(--rhythm); }
+  section:last-of-type { padding-bottom: var(--rhythm); }
+
+  .section-head { max-width: 720px; margin-bottom: 34px; }
+  .eyebrow {
+    display: inline-block; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--brand); font-weight: 600; margin-bottom: 10px;
+    padding: 3px 9px; border-radius: 999px; background: rgba(47,111,237,0.08);
+  }
+  .eyebrow-dark { color: #9dc0ff; background: rgba(120,160,255,0.14); }
+  .section-title { font-size: 30px; line-height: 1.3; margin: 0 0 12px; letter-spacing: -0.015em; }
+  @media (max-width: 720px) { .section-title { font-size: 25px; } }
+  .section-sub { max-width: 660px; margin: 0; }
+
+  /* 名字区：与其它段同一条对齐线，不再居中 */
+  .name-story { padding: 24px 0 8px; }
+  .name-story .wrap { max-width: 1120px; }
+  .name-story .inner { max-width: 720px; }
+
+  /* 功能区：弱化卡片感，做成规格网格 */
+  .features {
+    grid-template-columns: repeat(3, 1fr); gap: 1px;
+    background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+  }
+  .feature {
+    background: #fff; border: none; border-radius: 0; padding: 26px 24px 28px;
+    transition: background .18s ease;
+  }
+  .feature:hover { transform: none; box-shadow: none; background: #fbfcff; }
+  .feature .ico { margin-bottom: 12px; }
+  .feature h3 { font-size: 15px; margin: 0 0 9px; letter-spacing: -0.005em; }
+  .feature p { font-size: 13.2px; line-height: 1.85; }
+
+  /* 场景区：两列定义列表，逐行分隔 */
+  .uses {
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: 48px; row-gap: 0;
+    margin: 0; padding: 0;
+  }
+  @media (max-width: 820px) { .uses { grid-template-columns: 1fr; } }
+  .use {
+    display: grid; grid-template-columns: 150px 1fr; gap: 14px;
+    padding: 16px 0; border-top: 1px solid var(--line); background: none; border-radius: 0;
+  }
+  .use:first-child, .use:nth-child(2) { border-top: none; padding-top: 4px; }
+  @media (max-width: 820px) { .use:first-child { padding-top: 16px; } .use:nth-child(2) { border-top: 1px solid var(--line); padding-top: 16px; } }
+  .use dt { font-size: 13.5px; font-weight: 650; color: var(--ink); }
+  .use dd { margin: 0; font-size: 13.2px; line-height: 1.8; color: var(--ink-soft); }
+
+  /* 截图区：一张主图 + 四张小的 */
+  .shot-main {
+    margin: 0 auto 20px; max-width: 900px; border-radius: var(--radius);
+    overflow: hidden; background: var(--panel); border: 1px solid var(--line);
+  }
+  .shot-main img {
+    display: block; width: 100%; aspect-ratio: 16 / 9;
+    object-fit: cover; object-position: top center;
+  }
+  .shot figcaption { padding: 13px 16px 15px; font-size: 12.8px; color: var(--ink-soft); line-height: 1.7; }
+  .shot figcaption strong { color: var(--ink); font-weight: 650; margin-right: 6px; }
+  .shots { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .shot { border-radius: 13px; }
+  .shot img { aspect-ratio: 16 / 10; object-fit: cover; object-position: top left; }
+  .shot-main img { aspect-ratio: auto; }
+
+  /* 「还有」标签行 */
+  .also { margin-top: 26px; padding-top: 18px; border-top: 1px dashed var(--line); }
+
+  /* 边界区：两栏加底色，和上面的白卡区分开 */
+  .trust { gap: 14px; margin-bottom: 14px; }
+  .trust-col { border-radius: 14px; padding: 22px 24px 24px; }
+  .trust-col.yes { background: #f4faf7; border-color: #d6ebe0; }
+  .trust-col.no { background: #fdf6f5; border-color: #f0dedb; }
+
+  /* 部署卡：与上方留出呼吸 */
+  .deploy { border-radius: 18px; padding: 34px 34px 30px; }
+
+  @media (max-width: 940px) {
+    .features { grid-template-columns: repeat(2, 1fr); }
+    .shots { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .features { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 900px) {
+    .frame { transform: none; }
+    .hero { padding: 56px 0 64px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     #bg { display: none; }
     body { background: radial-gradient(120% 80% at 20% 0%, #14213d 0%, #070d18 60%); }
@@ -301,17 +403,20 @@
 
   <section class="name-story">
     <div class="wrap">
+      <div class="inner">
       <p class="name-line"><span>「页」</span>是记录，<span>「屿」</span>是岛。</p>
       <p class="name-sub">
         一条记录单看没什么，像一座孤零零的小岛：一张设备表、一份周报、半页笔记、一句「下周问一下」。
         让它们落在同一片水域里，才看得出地形——你在哪块地上做过什么、东西最后停在哪、那件事到底做完了没有。
       </p>
       <p class="name-end">这就是页屿：<strong>让散落的页面，连成你自己的群岛。</strong></p>
+      </div>
     </div>
   </section>
 
   <section class="pains">
     <div class="wrap">
+      <span class="eyebrow eyebrow-dark">为什么会有它</span>
       <h2 class="pains-title">换个行业，麻烦长得一模一样</h2>
       <div class="pains-grid">
         <div class="pain">
@@ -345,8 +450,11 @@
   <div class="light">
     <section id="features">
       <div class="wrap">
-        <h2 class="section-title">四件事，一个窗口</h2>
-        <p class="section-sub">设备要登记、进度要交代、想法要留住、事情要有人跟。四块都能单独用，合起来才顺：查到东西就知道谁负责，点开人就知道他这周交没交。</p>
+        <header class="section-head">
+          <span class="eyebrow">它做什么</span>
+          <h2 class="section-title">四件事，一个窗口</h2>
+          <p class="section-sub">设备要登记、进度要交代、想法要留住、事情要有人跟。四块都能单独用，合起来才顺：查到东西就知道谁负责，点开人就知道他这周交没交。</p>
+        </header>
 
         <div class="features">
           <div class="feature">
@@ -392,36 +500,51 @@
       </div>
     </section>
 
-    <section id="uses" style="padding-top: 0;">
+    <section id="uses" class="section">
       <div class="wrap">
-        <h2 class="section-title">谁用得上</h2>
-        <p class="section-sub">它解决的不是「某个行业的问题」，而是「一群人共用东西、需要交代进度、又怕把话忘了」这件事。</p>
-        <div class="uses">
-          <div class="use"><h4>课题组 / 实验室</h4><p>仪器台账、共用的采集卡与探头、按模版写的周报、实验日志与录音。</p></div>
-          <div class="use"><h4>工作室 / 小团队</h4><p>共用设备谁借走的、项目做到第几步、客户提的要求原话是什么。</p></div>
-          <div class="use"><h4>车间 / 仓库</h4><p>物料与工具登记、盘点差异、交接班记录、谁的活还没干完。</p></div>
-          <div class="use"><h4>门店 / 诊所</h4><p>固定资产与保修期、值班与交接记录、客户偏好与注意事项。</p></div>
-          <div class="use"><h4>社团 / 志愿组织</h4><p>成员名录与分组、活动记录与照片、物资借还、下一次会议待办。</p></div>
-          <div class="use"><h4>家庭 / 个人</h4><p>贵重物品与保修、家务与缴费待办、读书笔记与随手记。</p></div>
-        </div>
+        <header class="section-head">
+          <span class="eyebrow">谁在用</span>
+          <h2 class="section-title">不止课题组</h2>
+          <p class="section-sub">它解决的不是「某个行业的问题」，而是「一群人共用东西、要交代进度、又怕把话忘了」这件事——所以换个行当，用法几乎不用改。</p>
+        </header>
+        <dl class="uses">
+          <div class="use"><dt>课题组 / 实验室</dt><dd>仪器台账、共用的采集卡与探头、按模版写的周报、实验日志与录音。</dd></div>
+          <div class="use"><dt>工作室 / 小团队</dt><dd>共用设备谁借走的、项目做到第几步、客户提的要求原话是什么。</dd></div>
+          <div class="use"><dt>车间 / 仓库</dt><dd>物料与工具登记、盘点差异、交接班记录、谁的活还没干完。</dd></div>
+          <div class="use"><dt>门店 / 诊所</dt><dd>固定资产与保修期、值班与交接记录、客户偏好与注意事项。</dd></div>
+          <div class="use"><dt>社团 / 志愿组织</dt><dd>成员名录与分组、活动记录与照片、物资借还、下一次会议待办。</dd></div>
+          <div class="use"><dt>家庭 / 个人</dt><dd>贵重物品与保修、家务与缴费待办、读书笔记与随手记。</dd></div>
+        </dl>
       </div>
     </section>
 
-    <section id="shots" style="padding-top: 0;">
+    <section id="shots" class="section">
       <div class="wrap">
-        <h2 class="section-title">长这样</h2>
-        <p class="section-sub">桌面客户端（macOS / Windows）。登录是一个 400×500 的小窗，进去之后左边导航、右边干活，没有二次跳转。下面的截图是演示数据。</p>
+        <header class="section-head">
+          <span class="eyebrow">长什么样</span>
+          <h2 class="section-title">一张主界面，先看整体</h2>
+          <p class="section-sub">桌面客户端（macOS / Windows）。登录是一个 400×500 的小窗，进去左边导航、右边干活，没有二次跳转。</p>
+        </header>
+        <figure class="shot shot-main">
+          <img src="assets/hero-home.jpg" alt="工作台主界面" />
+          <figcaption><strong>工作台</strong>本周该做什么、还差谁没交、今天有几件待办，进门第一眼就看完。</figcaption>
+        </figure>
         <div class="shots">
-          <div class="shot"><img src="assets/shot-assets.jpg" alt="资产台账" /><div><strong>资产台账</strong>筛选、使用小组、行内编辑、附件与借用记录</div></div>
-          <div class="shot"><img src="assets/shot-notes.jpg" alt="笔记与日报" /><div><strong>笔记与日报</strong>双向链接、标签与关联面板</div></div>
-          <div class="shot"><img src="assets/shot-memos.jpg" alt="备忘录" /><div><strong>待办备忘录</strong>逾期高亮、分组与到期提醒</div></div>
-          <div class="shot"><img src="assets/shot-groups.jpg" alt="用户与权限" /><div><strong>成员与小组</strong>建组、归类、按组筛选</div></div>
+          <figure class="shot"><img src="assets/shot-assets.jpg" alt="资产台账" /><figcaption><strong>台账</strong>筛选、使用小组、行内编辑与借用记录</figcaption></figure>
+          <figure class="shot"><img src="assets/shot-notes.jpg" alt="笔记与日报" /><figcaption><strong>笔记与日报</strong>双向链接、标签与关联面板</figcaption></figure>
+          <figure class="shot"><img src="assets/shot-memos.jpg" alt="待办备忘录" /><figcaption><strong>待办与提醒</strong>逾期高亮、分组与到期提醒</figcaption></figure>
+          <figure class="shot"><img src="assets/shot-groups.jpg" alt="成员与分组" /><figcaption><strong>成员与分组</strong>建组、归类、按组筛选</figcaption></figure>
         </div>
       </div>
     </section>
 
-    <section id="deploy" style="padding-top: 0;">
+    <section id="deploy" class="section">
       <div class="wrap">
+        <header class="section-head">
+          <span class="eyebrow">先说实话</span>
+          <h2 class="section-title">它是什么，不是什么</h2>
+          <p class="section-sub">软件挑人的时候也会挑你：这几条决定了它适不适合你的团队，看完再决定装不装。</p>
+        </header>
         <div class="trust">
           <div class="trust-col yes">
             <h3>它是什么</h3>
