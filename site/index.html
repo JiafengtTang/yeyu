@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>页屿 Yeyu · 实验室台账、周报与笔记的桌面工作台</title>
-<meta name="description" content="「那台示波器借给谁了？」——页屿替你记着。课题组的设备台账、按模版写的周报、每日记录与待办，都在一个窗口里；数据存在自己的服务器上，开源 MIT。" />
-<meta property="og:title" content="页屿 Yeyu · 实验室台账、周报与笔记的桌面工作台" />
-<meta property="og:description" content="设备去了哪、周报写到哪、想法停在哪——一屏看完。开源 MIT，装在自己的服务器上。" />
+<title>页屿 Yeyu · 一页一屿，把散落的记录连成你自己的岛</title>
+<meta name="description" content="页屿 Yeyu：把设备台账、周期汇报、笔记日志、待办提醒放进一个桌面软件。适合课题组、工作室、车间、门店、社团——任何「东西要登记、进度要交代、想法要留住」的小团队。开源 MIT，数据在自己服务器上。" />
+<meta property="og:title" content="页屿 Yeyu · 一页一屿，把散落的记录连成你自己的岛" />
+<meta property="og:description" content="一页一屿。设备在谁手上、这周做了什么、那句话记在哪——散在群聊和便签里的记录，连成你自己的一座岛。开源 MIT。" />
 <meta property="og:image" content="assets/hero-home.jpg" />
 <link rel="icon" href="assets/logo.png" />
 <style>
@@ -118,6 +118,27 @@
   section { padding: 76px 0; }
   .section-title { font-size: 27px; margin: 0 0 10px; letter-spacing: -0.01em; }
   .section-sub { color: var(--ink-soft); font-size: 14.5px; margin: 0 0 34px; line-height: 1.85; }
+
+  /* 名字的故事 */
+  .name-story { color: #fff; padding: 8px 0 30px; }
+  .name-story .wrap { max-width: 780px; }
+  .name-line { font-size: 30px; line-height: 1.5; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .name-line span {
+    background: linear-gradient(96deg, #8ab4ff, #c8a9ff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-weight: 700;
+  }
+  .name-sub { font-size: 15px; line-height: 2; color: rgba(255,255,255,0.66); margin: 0 0 16px; }
+  .name-end { font-size: 15px; color: rgba(255,255,255,0.8); margin: 0; }
+  .name-end strong { color: #fff; }
+
+  /* 谁用得上 */
+  .uses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 940px) { .uses { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 620px) { .uses { grid-template-columns: 1fr; } }
+  .use { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .use h4 { font-size: 14.5px; margin: 0 0 7px; color: var(--ink); }
+  .use p { margin: 0; font-size: 13px; line-height: 1.8; color: var(--ink-soft); }
 
   /* 痛点区（深色） */
   .pains { color: #fff; padding: 26px 0 84px; }
@@ -246,10 +267,10 @@
     <div class="wrap hero-grid">
       <div>
         <span class="pill"><i></i><span id="release-badge">开源 · MIT</span></span>
-        <h1>「那台示波器，<br />借给谁了？」<br /><em>页屿替你记着。</em></h1>
+        <h1>一页一屿，<br />连成你自己的<em>群岛</em></h1>
         <p class="lede">
-          组里的设备台账、按模版写的周报、每天的想法、没做完的待办，本来是四件互不相干的事。
-          页屿把它们收进同一个窗口：东西在谁手上、周报改过几版、那句话是什么时候记的——翻一眼就能答上来。
+          设备在谁手上、这周做了些什么、那句想法记在哪、还有哪件事没做完——
+          这些记录本来散在群聊、表格、便签和脑子里。页屿把它们一页页收好，连成一片你自己看得懂的海域。
         </p>
 
         <div class="downloads">
@@ -278,33 +299,45 @@
     </div>
   </section>
 
+  <section class="name-story">
+    <div class="wrap">
+      <p class="name-line"><span>「页」</span>是记录，<span>「屿」</span>是岛。</p>
+      <p class="name-sub">
+        一条记录单看没什么，像一座孤零零的小岛：一张设备表、一份周报、半页笔记、一句「下周问一下」。
+        让它们落在同一片水域里，才看得出地形——你在哪块地上做过什么、东西最后停在哪、那件事到底做完了没有。
+      </p>
+      <p class="name-end">这就是页屿：<strong>让散落的页面，连成你自己的群岛。</strong></p>
+    </div>
+  </section>
+
   <section class="pains">
     <div class="wrap">
-      <h2 class="pains-title">没有它的时候，一周大概是这样过的</h2>
+      <h2 class="pains-title">换个行业，麻烦长得一模一样</h2>
       <div class="pains-grid">
         <div class="pain">
-          <span class="pain-tag">周一</span>
-          <h3>找设备</h3>
-          <p>翻三个群、问五个人，最后发现那台机器躺在隔壁工位，插着别人的线。</p>
+          <span class="pain-tag">工作室</span>
+          <h3>那台雕刻机去哪了</h3>
+          <p>翻三个群、问五个人，最后发现它在隔壁工位，插着别人的线，刀头还没卸。</p>
         </div>
         <div class="pain">
-          <span class="pain-tag">周五</span>
-          <h3>写周报</h3>
+          <span class="pain-tag">课题组</span>
+          <h3>周五下午的周报</h3>
           <p>翻聊天记录和相册，把一周重新拼一遍，再对着上周的模版改格式、调标题。</p>
         </div>
         <div class="pain">
-          <span class="pain-tag">随时</span>
-          <h3>记想法</h3>
-          <p>顺手写在便签或聊天框里，一周后看见那张纸，想不起当时为什么这么写。</p>
+          <span class="pain-tag">门店 / 车间</span>
+          <h3>客户那句「要浅一点」</h3>
+          <p>写在收银小票背面，三天后翻不到，只能重做一版，还不敢说是因为忘了。</p>
         </div>
         <div class="pain">
           <span class="pain-tag">截止夜</span>
-          <h3>催进度</h3>
-          <p>挨个头像点过去问「你的周报呢」，问完还得自己数谁没交、谁交的是草稿。</p>
+          <h3>挨个问交没交</h3>
+          <p>点开一个个头像问「你的进度呢」，问完还得自己数：谁没交、谁交的是草稿、谁交错了周。</p>
         </div>
       </div>
       <p class="pains-lead">
-        页屿把这四件事收进同一个窗口——不是为了多装一个软件，<strong>是为了少四次追问。</strong>
+        名字换了，麻烦是一样的：东西在谁手上、事情做到哪、那句话记在哪。
+        页屿把它们收进同一个窗口——不是为了多装一个软件，<strong>是为了少四次追问。</strong>
       </p>
     </div>
   </section>
@@ -313,38 +346,38 @@
     <section id="features">
       <div class="wrap">
         <h2 class="section-title">四件事，一个窗口</h2>
-        <p class="section-sub">每块都能单独用，合起来才顺：查到设备就知道谁负责，点开人就知道他这周交没交，交了什么又能回溯到当天的记录。</p>
+        <p class="section-sub">设备要登记、进度要交代、想法要留住、事情要有人跟。四块都能单独用，合起来才顺：查到东西就知道谁负责，点开人就知道他这周交没交。</p>
 
         <div class="features">
           <div class="feature">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4.5-9 4.5L3 7.5 12 3Z" /><path d="M3 12l9 4.5 9-4.5" /><path d="M3 16.5L12 21l9-4.5" /></svg></div>
-            <h3>资产台账</h3>
-            <p>谁在用、放在哪、值多少钱，一屏看清。成员只能改自己负责的那几行；借用归还、盘点差异、每次修改都留痕。手里有 Excel？导入导出都支持，迁移不费劲。</p>
+            <h3>台账：设备 · 物料 · 库存</h3>
+            <p>谁在用、放在哪、值多少钱、保修到几时，一屏看清。成员只能改自己负责的那几行；借用归还、盘点差异、每次修改都留痕。手里有 Excel 就导入，迁移不费劲。</p>
           </div>
           <div class="feature">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" /><path d="M14 3v5h5" /><path d="M9 13h6" /><path d="M9 17h4" /></svg></div>
-            <h3>按模版写的周报</h3>
-            <p>把组里现有的 Word 周报传上去，页屿自己认得出小节；你只管往每节里填，图和表直接贴。截止时间按「周几几点」算，每周交还是单双周交，都能设。</p>
+            <h3>周期汇报：周报 / 月报 / 日报</h3>
+            <p>把现有的 Word 模版传上去，页屿自己认得出小节；你只管往每节里填，图直接贴。截止时间按「周几几点」算，每周交、单双周交、还是只交月报，都能设。</p>
           </div>
           <div class="feature">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3" /><path d="M12 18v3" /><path d="M3 12h3" /><path d="M18 12h3" /><circle cx="12" cy="12" r="4.2" /></svg></div>
-            <h3>日报与笔记</h3>
-            <p>一天一条日报，想到什么随手记。<code>[[双向链接]]</code> 把零散记录连成网，<code>#标签</code>、全文搜索、日历和关系图帮你把「好像记过」变成「找得到」。想搬走就导出 Markdown。</p>
+            <h3>笔记与日志</h3>
+            <p>每天一页，想到什么随手记。<code>[[双向链接]]</code> 把零散记录连成网，<code>#标签</code>、全文搜索、日历和关系图帮你把「好像记过」变成「找得到」。想搬走就导出 Markdown。</p>
           </div>
           <div class="feature">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></div>
-            <h3>待办备忘录</h3>
+            <h3>待办与提醒</h3>
             <p>「下周问一下设备进度」这种话，记下来就不会忘。到点软件里提醒你，同一条只响一次；过了期的事红着摆在那儿，侧边栏也挂着角标。</p>
           </div>
           <div class="feature">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V20" /><circle cx="9.5" cy="7" r="3.2" /><path d="M17 11a3 3 0 1 0 0-6" /><path d="M21 20v-1.5a3.6 3.6 0 0 0-2.6-3.4" /></svg></div>
-            <h3>成员与小组</h3>
-            <p>手机号注册、管理员审批，谁在用一清二楚。按方向或职能建组，筛选、分派、统计都跟着组走——设备归属也自动跟着人走。</p>
+            <h3>成员与分组</h3>
+            <p>手机号注册、管理员审批，谁在用一清二楚。按部门、方向或班组建组，筛选、分派、统计都跟着组走——设备归属也自动跟着人走。</p>
           </div>
           <div class="feature">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="M10 9.5l5 2.5-5 2.5z" /></svg></div>
-            <h3>视频与音频</h3>
-            <p>组会录像、设备异响的录音，直接拖进笔记或周报里就能播放，不用再去文件夹里翻。附件里的合同、发票、照片也能挂着，缺什么一眼看得出来。</p>
+            <h3>音视频与附件</h3>
+            <p>会议录像、设备异响的录音，直接拖进笔记或汇报里就能播放，不用再去文件夹里翻。合同、发票、照片也能挂着，缺什么一眼看得出来。</p>
           </div>
         </div>
 
@@ -355,6 +388,21 @@
           <span>审计日志（谁改了什么）</span>
           <span>Excel 批量导入导出</span>
           <span>登录小窗 + 会话保持</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="uses" style="padding-top: 0;">
+      <div class="wrap">
+        <h2 class="section-title">谁用得上</h2>
+        <p class="section-sub">它解决的不是「某个行业的问题」，而是「一群人共用东西、需要交代进度、又怕把话忘了」这件事。</p>
+        <div class="uses">
+          <div class="use"><h4>课题组 / 实验室</h4><p>仪器台账、共用的采集卡与探头、按模版写的周报、实验日志与录音。</p></div>
+          <div class="use"><h4>工作室 / 小团队</h4><p>共用设备谁借走的、项目做到第几步、客户提的要求原话是什么。</p></div>
+          <div class="use"><h4>车间 / 仓库</h4><p>物料与工具登记、盘点差异、交接班记录、谁的活还没干完。</p></div>
+          <div class="use"><h4>门店 / 诊所</h4><p>固定资产与保修期、值班与交接记录、客户偏好与注意事项。</p></div>
+          <div class="use"><h4>社团 / 志愿组织</h4><p>成员名录与分组、活动记录与照片、物资借还、下一次会议待办。</p></div>
+          <div class="use"><h4>家庭 / 个人</h4><p>贵重物品与保修、家务与缴费待办、读书笔记与随手记。</p></div>
         </div>
       </div>
     </section>
@@ -381,14 +429,14 @@
               <li><strong>一个能自己跑起来的软件</strong>：一个容器 + 一个 SQLite 文件，不需要单独装数据库</li>
               <li><strong>数据在你手里</strong>：库和附件就是一个目录，备份 = 拷走 <code>app.db</code> 和 <code>uploads/</code></li>
               <li><strong>开源的</strong>：MIT，代码全在 GitHub，不满意可以自己改</li>
-              <li><strong>局域网就能用</strong>：不依赖任何外部云服务，断网也在自己机器上跑</li>
+              <li><strong>局域网就能用</strong>：办公室几台电脑连一台机器即可，不依赖任何外部云服务</li>
             </ul>
           </div>
           <div class="trust-col no">
             <h3>它不是什么</h3>
             <ul>
               <li><strong>不是云服务</strong>：没有账号托管，也没有把数据传出去的地方</li>
-              <li><strong>不是万能系统</strong>：没有多租户、没有 OCR、没有短信找回密码</li>
+              <li><strong>不是万能系统</strong>：没有多租户、没有 OCR、没有短信找回密码，也不做财务记账</li>
               <li><strong>不支持多实例</strong>：SQLite 单文件，一台机器一个库；要横向扩容得换 PostgreSQL</li>
               <li><strong>安装包没签名</strong>：mac 首次打开要右键「打开」，或执行一条 <code>xattr</code></li>
             </ul>
