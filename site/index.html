@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>页屿 Yeyu · 实验室台账、周报与笔记的桌面工作台</title>
+<meta name="description" content="页屿（Yeyu）：面向课题组的桌面工作台——固定资产台账、模版驱动的图文周报、日报与笔记、待办备忘录，成员分组与应用内更新。开源，MIT。" />
+<meta property="og:title" content="页屿 Yeyu · 实验室台账、周报与笔记的桌面工作台" />
+<meta property="og:description" content="台账 · 周报 · 留痕，一个桌面软件全包。开源 MIT。" />
+<meta property="og:image" content="assets/hero-home.jpg" />
+<link rel="icon" href="assets/logo.png" />
+<style>
+  :root {
+    --navy: #0b1220;
+    --navy-2: #121c30;
+    --ink: #101828;
+    --ink-soft: #475467;
+    --ink-faint: #98a2b3;
+    --brand: #2f6fed;
+    --violet: #7c5cf0;
+    --line: #e6eaf2;
+    --panel: #ffffff;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: var(--ink);
+    background: #f6f8fc;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px; }
+
+  header.nav {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(11, 18, 32, 0.92);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  header.nav .wrap { display: flex; align-items: center; gap: 14px; height: 62px; }
+  .brand { display: flex; align-items: center; gap: 9px; color: #fff; font-weight: 650; letter-spacing: 0.02em; }
+  .brand img { width: 26px; height: 26px; border-radius: 7px; }
+  .brand small { display: block; font-weight: 400; font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 0.06em; }
+  header.nav nav { margin-left: auto; display: flex; gap: 20px; font-size: 13.5px; color: rgba(255,255,255,0.72); }
+  header.nav nav a:hover { color: #fff; }
+  @media (max-width: 720px) { header.nav nav { display: none; } }
+
+  .hero {
+    background:
+      radial-gradient(110% 80% at 78% 0%, rgba(124,92,240,0.30) 0%, rgba(11,18,32,0) 60%),
+      radial-gradient(90% 70% at 12% 8%, rgba(47,111,237,0.34) 0%, rgba(11,18,32,0) 62%),
+      linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+    color: #fff;
+    padding: 76px 0 88px;
+  }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 46px; align-items: center; }
+  @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; gap: 32px; } .hero { padding: 54px 0 62px; } }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 11px; border-radius: 999px; font-size: 12px;
+    background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.16); color: rgba(255,255,255,0.82);
+  }
+  .pill i { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,0.22); }
+  h1 { font-size: 42px; line-height: 1.22; margin: 18px 0 14px; letter-spacing: -0.01em; }
+  @media (max-width: 720px) { h1 { font-size: 31px; } }
+  h1 em { font-style: normal; background: linear-gradient(96deg, #8ab4ff, #c8a9ff 55%, #ffd7a8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { font-size: 16px; line-height: 1.8; color: rgba(255,255,255,0.74); margin: 0 0 26px; max-width: 540px; }
+
+  .downloads { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 13px 20px; border-radius: 12px; font-size: 14.5px; font-weight: 600;
+    border: 1px solid transparent; cursor: pointer; transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: linear-gradient(180deg, #3d7cf7, #2f6fed); color: #fff; box-shadow: 0 14px 28px -16px rgba(47,111,237,0.95); }
+  .btn-primary:hover { box-shadow: 0 18px 32px -16px rgba(47,111,237,1); }
+  .btn-ghost { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.2); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.14); }
+  .btn small { font-weight: 400; opacity: 0.72; font-size: 11.5px; }
+  .btn svg { flex: 0 0 auto; }
+  .meta { margin-top: 14px; font-size: 12.5px; color: rgba(255,255,255,0.5); line-height: 1.7; }
+  .meta code { background: rgba(255,255,255,0.1); padding: 1.5px 6px; border-radius: 5px; font-size: 11.5px; }
+
+  .frame {
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.16);
+    box-shadow: 0 34px 70px -30px rgba(0,0,0,0.85);
+    background: #0d1526;
+  }
+  .frame-bar { display: flex; gap: 6px; padding: 9px 12px; background: rgba(255,255,255,0.06); }
+  .frame-bar span { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.22); }
+  .frame img { display: block; width: 100%; height: auto; }
+
+  section { padding: 74px 0; }
+  .section-title { font-size: 27px; margin: 0 0 10px; letter-spacing: -0.01em; }
+  .section-sub { color: var(--ink-soft); font-size: 14.5px; margin: 0 0 34px; line-height: 1.8; }
+
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 940px) { .features { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px) { .features { grid-template-columns: 1fr; } }
+  .feature {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px;
+  }
+  .feature .ico {
+    width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 14px;
+    background: linear-gradient(140deg, rgba(47,111,237,0.14), rgba(124,92,240,0.14)); color: var(--brand);
+  }
+  .feature h3 { font-size: 15.5px; margin: 0 0 8px; }
+  .feature p { margin: 0; font-size: 13.5px; line-height: 1.75; color: var(--ink-soft); }
+
+  .shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 940px) { .shots { grid-template-columns: 1fr; } }
+  .shot { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .shot img { display: block; width: 100%; }
+  .shot div { padding: 13px 16px 15px; font-size: 13px; color: var(--ink-soft); }
+  .shot strong { display: block; color: var(--ink); font-size: 13.5px; margin-bottom: 4px; }
+
+  .deploy { background: var(--navy); color: #fff; border-radius: 20px; padding: 34px 34px 30px; }
+  .deploy h3 { margin: 0 0 10px; font-size: 20px; }
+  .deploy p { color: rgba(255,255,255,0.72); font-size: 14px; line-height: 1.85; margin: 0 0 18px; }
+  .deploy pre {
+    margin: 0; padding: 16px 18px; border-radius: 12px; overflow-x: auto;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    font-size: 12.5px; line-height: 1.9; color: #d8e4ff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  .deploy .kv { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .deploy .kv span { font-size: 12.5px; color: rgba(255,255,255,0.72); background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); padding: 5px 10px; border-radius: 999px; }
+
+  footer { padding: 34px 0 46px; color: var(--ink-faint); font-size: 13px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
+  footer a { color: var(--ink-soft); }
+  footer a:hover { color: var(--brand); }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <img src="assets/logo.png" alt="" />
+      <span>页屿<small>台账 · 周报 · 留痕</small></span>
+    </a>
+    <nav>
+      <a href="#features">功能</a>
+      <a href="#shots">界面</a>
+      <a href="#deploy">部署</a>
+      <a href="https://github.com/JiafengtTang/yeyu" target="_blank" rel="noreferrer">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="pill"><i></i><span id="release-badge">开源 · MIT</span></span>
+        <h1>把台账、周报、日报、待办<br />放进<em>一个桌面软件</em></h1>
+        <p class="lede">
+          页屿是给课题组用的本地工作台：固定资产谁在用、周报按什么模版交、每个人今天记了什么、还有什么待办没做，
+          都在一个窗口里，数据存在你自己的服务器上。
+        </p>
+
+        <div class="downloads">
+          <a class="btn btn-primary" id="dl-mac" href="https://github.com/JiafengtTang/yeyu/releases/latest">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11" /><path d="M8 10.5l4 4 4-4" /><path d="M4 17.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5" /></svg>
+            <span>下载 macOS 版<small id="dl-mac-size">Apple Silicon</small></span>
+          </a>
+          <a class="btn btn-ghost" id="dl-win" href="https://github.com/JiafengtTang/yeyu/releases/latest">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11" /><path d="M8 10.5l4 4 4-4" /><path d="M4 17.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5" /></svg>
+            <span>下载 Windows 版<small id="dl-win-size">x64 安装包</small></span>
+          </a>
+        </div>
+
+        <p class="meta">
+          <span id="release-version">正在读取最新版本…</span><br />
+          安装包未做代码签名。macOS 首次打开请右键 →「打开」，或执行
+          <code>xattr -dr com.apple.quarantine /Applications/页屿.app</code><br />
+          已安装旧版本？软件里点左下角「检查更新」，可一键下载新版。
+        </p>
+      </div>
+
+      <div class="frame">
+        <div class="frame-bar"><span></span><span></span><span></span></div>
+        <img src="assets/hero-home.jpg" alt="页屿工作台界面" />
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <h2 class="section-title">一个软件，覆盖组里那些琐碎但要留痕的事</h2>
+      <p class="section-sub">本地部署、SQLite 单文件、不依赖外部云服务；手机号注册 + 管理员审批，权限按角色和小组划分。</p>
+
+      <div class="features">
+        <div class="feature">
+          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4.5-9 4.5L3 7.5 12 3Z" /><path d="M3 12l9 4.5 9-4.5" /><path d="M3 16.5L12 21l9-4.5" /></svg></div>
+          <h3>资产台账</h3>
+          <p>编码、型号、价格、存放位置、责任人、使用小组、借用归还、盘点核对与审计日志；Excel 一键导入导出，成员只能改自己负责的资产。</p>
+        </div>
+        <div class="feature">
+          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" /><path d="M14 3v5h5" /><path d="M9 13h6" /><path d="M9 17h4" /></svg></div>
+          <h3>模版驱动的周报</h3>
+          <p>上传组里现成的 Word 周报模版，自动识别小节，逐节写图文、贴图即存。截止时间可设星期与时刻，还能选每周 / 单周 / 双周提交频次。</p>
+        </div>
+        <div class="feature">
+          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3" /><path d="M12 18v3" /><path d="M3 12h3" /><path d="M18 12h3" /><circle cx="12" cy="12" r="4.2" /></svg></div>
+          <h3>日报与笔记</h3>
+          <p>每天一条日报，另有自由笔记；<code>[[双向链接]]</code> 与反链、<code>#标签</code>、全文搜索、日历视图、关系图谱，导出 Markdown 随时搬走。</p>
+        </div>
+        <div class="feature">
+          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></div>
+          <h3>待办备忘录</h3>
+          <p>随手记一条待办，可设截止时间；逾期红底高亮，到点在软件里提醒你（同一条只提醒一次），侧边栏还有逾期角标。</p>
+        </div>
+        <div class="feature">
+          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V20" /><circle cx="9.5" cy="7" r="3.2" /><path d="M17 11a3 3 0 1 0 0-6" /><path d="M21 20v-1.5a3.6 3.6 0 0 0-2.6-3.4" /></svg></div>
+          <h3>成员与小组</h3>
+          <p>手机号注册、管理员审批；可建小组（方向 / 职能），成员归类后可批量筛选，资产归属也跟着小组走。</p>
+        </div>
+        <div class="feature">
+          <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7" /><path d="M21 4v5h-5" /></svg></div>
+          <h3>应用内更新</h3>
+          <p>左下角「检查更新」直接查最新版本、显示更新说明、带进度下载安装包，装完即新版；不用再到处找链接。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="shots" style="padding-top: 0;">
+    <div class="wrap">
+      <h2 class="section-title">界面</h2>
+      <p class="section-sub">桌面端（Electron），登录是小窗，主界面是左侧导航 + 内容区，深浅两套主题配色一致。</p>
+      <div class="shots">
+        <div class="shot"><img src="assets/shot-assets.jpg" alt="资产台账" /><div><strong>资产台账</strong>筛选、行内编辑、附件与借用记录</div></div>
+        <div class="shot"><img src="assets/shot-notes.jpg" alt="笔记与日报" /><div><strong>笔记与日报</strong>双向链接、标签与关联面板</div></div>
+        <div class="shot"><img src="assets/shot-groups.jpg" alt="用户与权限" /><div><strong>成员与小组</strong>建组、归类、按组筛选</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="deploy" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="deploy">
+        <h3>部署到自己的服务器</h3>
+        <p>
+          服务端是一个 Fastify 进程 + <strong>SQLite 单文件数据库</strong>，<strong>不需要另装 MySQL / PostgreSQL</strong>：
+          数据库就是容器里 <code style="color:#cfe0ff">/data/app.db</code> 这一个文件，启动时自动建表。
+          只要把 <code style="color:#cfe0ff">app.db</code> 和 <code style="color:#cfe0ff">uploads/</code> 放进同一个持久化卷（备份也只需备份这两样）即可。
+        </p>
+        <pre>cd deploy
+cp .env.example .env          # 填 JWT_SECRET（必填）
+docker compose up -d --build   # 首次启动自动建库建表
+docker compose exec server pnpm exec tsx prisma/seed.ts   # 创建首个管理员
+curl http://127.0.0.1:4000/api/health</pre>
+        <div class="kv">
+          <span>SQLite 单文件</span>
+          <span>单机部署（不支持多实例）</span>
+          <span>备份 = app.db + uploads</span>
+          <span>Node 24 · Fastify 4 · Prisma 5</span>
+          <span>Electron 33 客户端</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>页屿 Yeyu · <a href="https://github.com/JiafengtTang/yeyu/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT License</a></span>
+    <span>
+      <a href="https://github.com/JiafengtTang/yeyu" target="_blank" rel="noreferrer">源码</a> ·
+      <a href="https://github.com/JiafengtTang/yeyu/releases" target="_blank" rel="noreferrer">全部版本</a> ·
+      <a href="https://github.com/JiafengtTang/yeyu/issues" target="_blank" rel="noreferrer">反馈</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var API = 'https://api.github.com/repos/JiafengtTang/yeyu/releases/latest'
+    var macLink = document.getElementById('dl-mac')
+    var winLink = document.getElementById('dl-win')
+    var macSize = document.getElementById('dl-mac-size')
+    var winSize = document.getElementById('dl-win-size')
+    var versionEl = document.getElementById('release-version')
+    var badge = document.getElementById('release-badge')
+
+    function mb(bytes) {
+      return bytes ? Math.round(bytes / 1024 / 1024) + ' MB' : ''
+    }
+
+    fetch(API, { headers: { Accept: 'application/vnd.github+json' } })
+      .then(function (res) { return res.ok ? res.json() : Promise.reject(res.status) })
+      .then(function (release) {
+        var assets = release.assets || []
+        var mac = assets.find(function (a) { return /\.dmg$/i.test(a.name) && /arm64/i.test(a.name) }) ||
+                  assets.find(function (a) { return /\.dmg$/i.test(a.name) })
+        var win = assets.find(function (a) { return /\.exe$/i.test(a.name) })
+        if (mac) {
+          macLink.href = mac.browser_download_url
+          macSize.textContent = 'Apple Silicon · ' + mb(mac.size)
+        }
+        if (win) {
+          winLink.href = win.browser_download_url
+          winSize.textContent = 'x64 安装包 · ' + mb(win.size)
+        }
+        var published = release.published_at ? new Date(release.published_at).toLocaleDateString('zh-CN') : ''
+        versionEl.textContent = '最新版本 ' + release.tag_name + (published ? '（' + published + ' 发布）' : '')
+        if (badge) badge.textContent = release.tag_name + ' · 开源 MIT'
+      })
+      .catch(function () {
+        versionEl.textContent = '暂时取不到最新版本号，点下载按钮会跳到 GitHub Releases 页面'
+      })
+  })()
+</script>
+</body>
+</html>
