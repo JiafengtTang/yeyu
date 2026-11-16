@@ -1,6 +1,10 @@
 import Fastify, { type FastifyInstance } from 'fastify'
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
+import { constants as fsConstants, promises as fs } from 'node:fs'
+import path from 'node:path'
+import { prisma } from './lib/prisma'
+import { requireAdmin } from './plugins/auth'
 import { installErrorHandler } from './lib/errors'
 import { registerMediaRoutes, MAX_UPLOAD_BYTES } from './lib/storage'
 import { registerUsersModule } from './modules/users/index'
@@ -22,7 +26,71 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(multipart, { limits: { fileSize: MAX_UPLOAD_BYTES } })
   installErrorHandler(app)
 
-  app.get('/api/health', async () => ({ ok: true, at: new Date().toISOString() }))
+  const startedAt = Date.now()
+
+  app.get('/api/health', async (_req, reply) => {
+    const checks: Record<string, string> = {}
+    let ok = true
+    try {
+      await prisma.user.count()
+      checks.db = 'ok'
+    } catch (error) {
+      checks.db = 'error: ' + (error instanceof Error ? error.message : String(error))
+      ok = false
+    }
+    try {
+      await fs.access(process.env.UPLOAD_DIR ?? path.join(process.cwd(), 'uploads'), fsConstants.W_OK)
+      checks.uploads = 'ok'
+    } catch {
+      checks.uploads = 'unwritable'
+      ok = false
+    }
+    if (!ok) reply.code(503)
+    return {
+      ok,
+      version: process.env.npm_package_version ?? '0.0.0',
+      uptimeSec: Math.round((Date.now() - startedAt) / 1000),
+      at: new Date().toISOString(),
+      checks
+    }
+  })
+
+  app.get('/api/metrics', { preHandler: requireAdmin }, async () => {
+    const since = new Date(Date.now() - 7 * 86400_000)
+    const [users, activeUsers, assets, reports, pendingReview, notes, memos, openMemos, overdueMemos, mediaCount] =
+      await Promise.all([
+        prisma.user.count(),
+        prisma.user.count({ where: { status: 'ACTIVE' } }),
+        prisma.asset.count(),
+        prisma.report.count(),
+        prisma.report.count({ where: { status: 'SUBMITTED' } }),
+        prisma.note.count(),
+        prisma.memo.count(),
+        prisma.memo.count({ where: { done: false } }),
+        prisma.memo.count({ where: { done: false, dueAt: { lt: new Date() } } }),
+        prisma.media.count()
+      ])
+    const [recentReports, recentNotes] = await Promise.all([
+      prisma.report.count({ where: { updatedAt: { gte: since } } }),
+      prisma.note.count({ where: { updatedAt: { gte: since } } })
+    ])
+    return {
+      at: new Date().toISOString(),
+      counters: {
+        users,
+        activeUsers,
+        assets,
+        reports,
+        pendingReview,
+        notes,
+        memos,
+        openMemos,
+        overdueMemos,
+        mediaFiles: mediaCount
+      },
+      activity7d: { reports: recentReports, notes: recentNotes }
+    }
+  })
 
   await registerMediaRoutes(app)
   await registerUsersModule(app)

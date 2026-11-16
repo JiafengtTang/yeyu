@@ -529,6 +529,8 @@ export function htmlToMarkdown(html: string): string {
     .replace(/<h4[^>]*>([\s\S]*?)<\/h4>/gi, (_m: string, t: string) => '\n#### ' + decode(t.replace(/<[^>]+>/g, '')) + '\n')
     .replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, (_m: string, t: string) => '- ' + decode(t.replace(/<[^>]+>/g, '')) + '\n')
     .replace(/<img[^>]*src="media:([^"]+)"[^>]*>/gi, (_m: string, id: string) => '\n![图片](media:' + id + ')\n')
+    .replace(/<video[^>]*src="([^"]+)"[^>]*>([\s\S]*?)<\/video>/gi, (_m: string, src: string) => '\n[视频](' + src + ')\n')
+    .replace(/<audio[^>]*src="([^"]+)"[^>]*>([\s\S]*?)<\/audio>/gi, (_m: string, src: string) => '\n[音频](' + src + ')\n')
     .replace(/<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (_m: string, href: string, t: string) => '[' + decode(t.replace(/<[^>]+>/g, '')) + '](' + href + ')')
     .replace(/<(strong|b)[^>]*>([\s\S]*?)<\/\1>/gi, (_m: string, _tag: string, t: string) => '**' + decode(t.replace(/<[^>]+>/g, '')) + '**')
     .replace(/<(em|i)[^>]*>([\s\S]*?)<\/\1>/gi, (_m: string, _tag: string, t: string) => '*' + decode(t.replace(/<[^>]+>/g, '')) + '*')

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type ChangeEvent } from 'react'
-import { EditorContent, useEditor, type Editor } from '@tiptap/react'
+import { EditorContent, mergeAttributes, Node, useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -14,6 +14,32 @@ interface RichEditorProps {
   /** 空内容时的占位提示；不传则用通用文案 */
   placeholder?: string
 }
+
+/** TipTap 没有内置音视频节点，这里补两个最简单的：可拖动、可删除、带原生控件 */
+function mediaNode(name: 'video' | 'audio') {
+  return Node.create({
+    name,
+    group: 'block',
+    atom: true,
+    draggable: true,
+    addAttributes: () => ({ src: { default: null } }),
+    parseHTML: () => [{ tag: name + '[src]' }],
+    renderHTML: ({ HTMLAttributes }) => [
+      name,
+      mergeAttributes(HTMLAttributes, {
+        controls: 'true',
+        preload: 'metadata',
+        style:
+          name === 'video'
+            ? 'max-width:100%;border-radius:10px;margin:10px 0;background:#000'
+            : 'width:100%;margin:10px 0'
+      })
+    ]
+  })
+}
+
+const VideoNode = mediaNode('video')
+const AudioNode = mediaNode('audio')
 
 interface ToolButtonProps {
   label: string
@@ -34,6 +60,8 @@ function ToolButton({ label, title, active = false, disabled = false, onClick }:
 export function RichEditor({ value, editable, onChange, placeholder }: RichEditorProps) {
   const toast = useToast()
   const fileRef = useRef<HTMLInputElement | null>(null)
+  const videoRef = useRef<HTMLInputElement | null>(null)
+  const audioRef = useRef<HTMLInputElement | null>(null)
   const editorRef = useRef<Editor | null>(null)
   const onChangeRef = useRef(onChange)
   const readyRef = useRef(false)
@@ -58,12 +86,38 @@ export function RichEditor({ value, editable, onChange, placeholder }: RichEdito
     [toast]
   )
 
+  const insertMedia = useCallback(
+    async (files: File[]) => {
+      for (const file of files) {
+        const target = editorRef.current
+        if (!target) return
+        const isVideo = file.type.startsWith('video/')
+        try {
+          const form = new FormData()
+          form.append('file', file)
+          form.append('usage', 'REPORT')
+          const media = await apiForm<MediaDTO>('/api/media', form)
+          target
+            .chain()
+            .focus()
+            .insertContent({ type: isVideo ? 'video' : 'audio', attrs: { src: mediaUrl(media.id) } })
+            .run()
+        } catch (err) {
+          toast.push((isVideo ? '视频' : '音频') + '上传失败：' + apiErrorMessage(err), 'error')
+        }
+      }
+    },
+    [toast]
+  )
+
   const editor = useEditor({
     immediatelyRender: false,
     editable,
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Image.configure({ inline: false, allowBase64: false }),
+      VideoNode,
+      AudioNode,
       Placeholder.configure({
         placeholder: placeholder ?? '本周进展、遇到的问题、下周计划…（可直接粘贴或拖拽图片）'
       })
@@ -80,18 +134,24 @@ export function RichEditor({ value, editable, onChange, placeholder }: RichEdito
     },
     editorProps: {
       handlePaste: (_view, event) => {
-        const files = Array.from(event.clipboardData?.files ?? []).filter((file) => file.type.startsWith('image/'))
-        if (files.length === 0) return false
+        const all = Array.from(event.clipboardData?.files ?? [])
+        const files = all.filter((file) => file.type.startsWith('image/'))
+        const media = all.filter((file) => file.type.startsWith('video/') || file.type.startsWith('audio/'))
+        if (files.length === 0 && media.length === 0) return false
         event.preventDefault()
-        void insertImages(files)
+        if (files.length > 0) void insertImages(files)
+        if (media.length > 0) void insertMedia(media)
         return true
       },
       handleDrop: (_view, event, _slice, moved) => {
         if (moved) return false
-        const files = Array.from(event.dataTransfer?.files ?? []).filter((file) => file.type.startsWith('image/'))
-        if (files.length === 0) return false
+        const all = Array.from(event.dataTransfer?.files ?? [])
+        const files = all.filter((file) => file.type.startsWith('image/'))
+        const media = all.filter((file) => file.type.startsWith('video/') || file.type.startsWith('audio/'))
+        if (files.length === 0 && media.length === 0) return false
         event.preventDefault()
-        void insertImages(files)
+        if (files.length > 0) void insertImages(files)
+        if (media.length > 0) void insertMedia(media)
         return true
       }
     }
@@ -106,6 +166,12 @@ export function RichEditor({ value, editable, onChange, placeholder }: RichEdito
     const files = Array.from(event.target.files ?? [])
     event.target.value = ''
     if (files.length > 0) void insertImages(files)
+  }
+
+  const onPickMedia = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? [])
+    event.target.value = ''
+    if (files.length > 0) void insertMedia(files)
   }
 
   if (!editor) return <div className="rich-editor"><div className="rich-body" /></div>
@@ -126,11 +192,15 @@ export function RichEditor({ value, editable, onChange, placeholder }: RichEdito
         <ToolButton label="代码" title="代码块" active={editor.isActive('codeBlock')} disabled={!editable} onClick={() => editor.chain().focus().toggleCodeBlock().run()} />
         <ToolButton label="分割线" title="分割线" disabled={!editable} onClick={() => editor.chain().focus().setHorizontalRule().run()} />
         <ToolButton label="插入图片" title="插入图片（也可粘贴 / 拖拽）" disabled={!editable} onClick={() => fileRef.current?.click()} />
+        <ToolButton label="插入视频" title="上传并插入视频（mp4 / mov / webm，可在文中直接播放）" disabled={!editable} onClick={() => videoRef.current?.click()} />
+        <ToolButton label="插入音频" title="上传并插入音频（mp3 / wav / m4a，可在文中直接播放）" disabled={!editable} onClick={() => audioRef.current?.click()} />
         <ToolButton label="撤销" title="撤销" disabled={!editable || !editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} />
         <ToolButton label="重做" title="重做" disabled={!editable || !editor.can().redo()} onClick={() => editor.chain().focus().redo().run()} />
       </div>
       <EditorContent className="rich-body" editor={editor} />
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPickFile} />
+      <input ref={videoRef} type="file" accept="video/*" hidden onChange={onPickMedia} />
+      <input ref={audioRef} type="file" accept="audio/*" hidden onChange={onPickMedia} />
     </div>
   )
 }

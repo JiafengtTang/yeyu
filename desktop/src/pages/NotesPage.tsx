@@ -8,6 +8,7 @@ import type {
   NoteSummaryDTO
 } from '@yeyu/shared'
 import { api, apiDownload, apiErrorMessage, formatDate } from '../api/client'
+import { toDisplayHtml, toStorageHtml } from './reports/mediaHtml'
 import { Badge, Button, Card, EmptyState, Input, Spinner, useToast } from '../ui'
 import { Icon } from '../ui/icons'
 import { RichEditor } from './reports/RichEditor'
@@ -74,7 +75,7 @@ export default function NotesPage() {
         const detail = await api<NoteDTO>('/api/notes/' + id)
         setActive(detail)
         setTitle(detail.title)
-        setHtml(detail.contentHtml)
+        setHtml(toDisplayHtml(detail.contentHtml))
         setTab('notes')
       } catch (err) {
         toast.push(apiErrorMessage(err), 'error')
@@ -102,7 +103,7 @@ export default function NotesPage() {
       try {
         const detail = await api<NoteDTO>('/api/notes/' + id, {
           method: 'PATCH',
-          body: { title: next.title.trim() || '未命名笔记', contentHtml: next.html }
+          body: { title: next.title.trim() || '未命名笔记', contentHtml: toStorageHtml(next.html) }
         })
         setActive((prev) => (prev && prev.id === detail.id ? { ...prev, links: detail.links, backlinks: detail.backlinks, tags: detail.tags, updatedAt: detail.updatedAt } : prev))
       } catch (err) {

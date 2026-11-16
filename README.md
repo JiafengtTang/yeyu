@@ -160,15 +160,25 @@ gh release create v0.2.0 --repo JiafengtTang/yeyu --title "页屿 v0.2.0" --note
 > 上述能力以 `docs/API.md` 为准：每个模块在 `server/src/modules/<模块>` 与 `desktop/src/pages/` 下成对实现，
 > `/api/health` 与媒体接口（`lib/storage.ts`）由公共层提供。
 
-## 未做项（明确的边界）
+## 能力边界（做完了什么 / 还没做什么）
 
-- **不支持的部署形态**：多实例/负载均衡（SQLite 单文件不支持）、多租户、公网直连（默认无 HTTPS，需自行加 nginx）。
-- **账号体系**：无邮箱/短信找回密码（由管理员重置）、无 SSO/LDAP、无二次验证。
-- **通知**：无邮件/IM 提醒，本周未交只在工作台标红。
-- **报表**：无图表统计与 BI 导出，只有列表筛选 + Excel 导出。
-- **附件**：无在线预览 PDF 之外的能力（不做 PDF 文本抽取、不做 OCR）。
-- **客户端**：不做自动更新（无签名证书，手动换安装包）；无 Linux 包。
-- **运维**：无内置定时备份守护（用 crontab 调 `scripts/backup.sh`）、无监控告警、无数据库迁移框架（表结构靠 `prisma db push`）。
+### 已支持
+
+- **自动更新**：应用内「检查更新」拉 GitHub Release、带进度下载安装包（`desktop/electron/updater.ts`）。
+- **Linux 客户端**：`pnpm --filter @yeyu/desktop build:linux` 产出 AppImage 与 deb（未在真机验证）。
+- **定时备份守护**：`scripts/backup-daemon.sh` 按间隔备份并保留 N 份，可配 systemd / cron。
+- **健康检查与指标**：`GET /api/health`（含 db、uploads 检查，异常返回 503）、`GET /api/metrics`（管理员，计数器与近 7 天活跃，可直接接 Prometheus 抓取）。
+- **数据库迁移基线**：`server/prisma/migrations/0001_init`（`prisma migrate diff` 生成）；新装可用 `prisma migrate deploy`，升级仍以 `prisma db push` 为主。
+- **媒体播放**：笔记与周报里可插入视频/音频并直接播放（单文件上限由 `MAX_UPLOAD_MB` 控制，默认 200MB；媒体接口支持 Range，可拖动进度条）。
+
+### 仍未支持
+
+- **部署形态**：多实例/负载均衡（SQLite 单文件不支持，需换 PostgreSQL）、多租户、HTTPS 终止（自行加 nginx）。
+- **账号体系**：邮箱/短信找回密码（仍由管理员重置）、SSO/LDAP、二次验证。
+- **通知**：邮件 / IM 外发提醒（目前只有应用内提醒：备忘录到期、工作台标红）。
+- **报表**：图表统计与 BI 导出（只有列表筛选 + Excel 导出）。
+- **附件**：PDF 文本抽取与 OCR（只能在线预览）。
+- **监控告警**：已有指标端点，但没有内置阈值告警与推送。
 
 ---
 

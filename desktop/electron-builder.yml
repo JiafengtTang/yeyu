@@ -62,6 +62,20 @@ win:
       arch:
         - x64
 
+linux:
+  icon: build/icon.png
+  category: Office
+  synopsis: 页屿 · 台账、周报与笔记的桌面工作台
+  description: 课题组用的桌面工作台：资产台账、模版驱动的图文周报、日报与笔记、待办备忘录。
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+  artifactName: yeyu-${version}-linux-${arch}.${ext}
+
 nsis:
   oneClick: false
   perMachine: false

@@ -9,8 +9,18 @@ import { prisma } from './prisma'
 import { AppError } from './errors'
 import { requireAuth, currentUser, isAdmin, verifyTokenString } from '../plugins/auth'
 
-export const MAX_UPLOAD_BYTES = 20 * 1024 * 1024
-export const ALLOWED_MIME_PREFIXES = ['image/', 'application/pdf', 'application/vnd.openxmlformats-officedocument', 'text/plain', 'application/msword']
+/** 单个文件上限，可用环境变量 MAX_UPLOAD_MB 调整（默认 200MB，够放短视频与音频） */
+export const MAX_UPLOAD_BYTES = Math.max(1, Number(process.env.MAX_UPLOAD_MB ?? 200)) * 1024 * 1024
+export const MAX_UPLOAD_LABEL = Math.round(MAX_UPLOAD_BYTES / 1024 / 1024) + 'MB'
+export const ALLOWED_MIME_PREFIXES = [
+  'image/',
+  'video/',
+  'audio/',
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument',
+  'text/plain',
+  'application/msword'
+]
 
 export function uploadDir(): string {
   const dir = process.env.UPLOAD_DIR ?? './uploads'
@@ -36,7 +46,7 @@ export async function saveUpload(file: MultipartFile, opts: { usage: string; upl
   }
   const buffer = await file.toBuffer()
   if (buffer.byteLength === 0) throw AppError.validation('空文件')
-  if (buffer.byteLength > MAX_UPLOAD_BYTES) throw AppError.validation('文件超过 20MB')
+  if (buffer.byteLength > MAX_UPLOAD_BYTES) throw AppError.validation('文件超过 ' + MAX_UPLOAD_LABEL)
 
   const ext = (path.extname(file.filename ?? '') || '').slice(0, 12).toLowerCase()
   const id = crypto.randomUUID()
@@ -97,7 +107,28 @@ export async function registerMediaRoutes(app: FastifyInstance): Promise<void> {
     }
     reply.header('Content-Type', media.mime)
     reply.header('Cache-Control', 'private, max-age=86400')
+    reply.header('Accept-Ranges', 'bytes')
     reply.header('Content-Disposition', 'inline; filename*=UTF-8\'\'' + encodeURIComponent(media.filename))
+
+    // 视频/音频要靠 Range 才能拖动进度条与边下边播
+    const range = req.headers.range
+    const size = (await stat(abs)).size
+    if (range) {
+      const matched = /^bytes=(\d*)-(\d*)$/.exec(range.trim())
+      if (matched) {
+        const start = matched[1] ? Number(matched[1]) : 0
+        const end = matched[2] ? Math.min(Number(matched[2]), size - 1) : size - 1
+        if (Number.isFinite(start) && start <= end && start < size) {
+          reply.code(206)
+          reply.header('Content-Range', 'bytes ' + start + '-' + end + '/' + size)
+          reply.header('Content-Length', String(end - start + 1))
+          return reply.send(createReadStream(abs, { start, end }))
+        }
+        reply.code(416).header('Content-Range', 'bytes */' + size)
+        return reply.send()
+      }
+    }
+    reply.header('Content-Length', String(size))
     return reply.send(createReadStream(abs))
   })
 

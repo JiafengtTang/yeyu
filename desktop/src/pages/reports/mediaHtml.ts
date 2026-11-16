@@ -24,5 +24,5 @@ export function htmlToText(html: string): string {
 }
 
 export function isBlankHtml(html: string): boolean {
-  return !/<img\b/i.test(html) && htmlToText(html).length === 0
+  return !/<(img|video|audio)\b/i.test(html) && htmlToText(html).length === 0
 }
