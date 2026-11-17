@@ -237,6 +237,45 @@
   footer a { color: rgba(255,255,255,0.72); }
   footer a:hover { color: #fff; }
 
+  /* 封面快捷跳转 */
+  .jump { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 22px 0 0; }
+  .jump-label { font-size: 11.5px; color: rgba(255,255,255,0.45); margin-right: 3px; letter-spacing: 0.04em; }
+  .jump a {
+    font-size: 12.5px; color: rgba(255,255,255,0.8); padding: 5px 11px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06);
+    transition: background .16s ease, color .16s ease, border-color .16s ease;
+  }
+  .jump a:hover { background: rgba(255,255,255,0.16); color: #fff; border-color: rgba(255,255,255,0.32); }
+
+  /* 锚点落位与高亮 */
+  section { scroll-margin-top: 84px; }
+  .feature { scroll-margin-top: 96px; transition: background .3s ease, box-shadow .3s ease; }
+  .feature:target { background: #edf4ff; box-shadow: inset 0 0 0 2px rgba(47,111,237,0.4); }
+  .feature:target .ico { background: linear-gradient(140deg, rgba(47,111,237,0.3), rgba(124,92,240,0.3)); }
+
+  /* 截图标注气泡 */
+  .shot-frame { position: relative; display: block; }
+  .callout {
+    position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -100%);
+    display: inline-flex; align-items: center;
+    background: #fff; color: #101828; font-size: 12px; font-weight: 600; letter-spacing: 0.01em;
+    padding: 5px 10px; border-radius: 8px; white-space: nowrap;
+    box-shadow: 0 12px 26px -16px rgba(0,0,0,0.85), 0 0 0 1px rgba(16,24,40,0.06);
+  }
+  .callout::after {
+    content: ''; position: absolute; left: 50%; top: 100%; width: 1px; height: 14px;
+    background: rgba(255,255,255,0.8); transform: translateX(-50%);
+  }
+  .callout::before {
+    content: ''; position: absolute; left: 50%; top: calc(100% + 14px); transform: translate(-50%, -50%);
+    width: 7px; height: 7px; border-radius: 50%; background: #fff;
+    box-shadow: 0 0 0 3px rgba(47,111,237,0.6);
+  }
+  .callout-sm { font-size: 11px; padding: 4px 8px; }
+  .shot-zoom { display: block; cursor: zoom-in; }
+  .shot figcaption::after { content: ' · 点击看大图'; color: var(--ink-faint); font-size: 11.5px; }
+  @media (max-width: 860px) { .callout { display: none; } }
+
   /* ── 统一骨架：节奏 / 段落头 / 差异化卡片 ── */
   :root {
     --rhythm: 96px;
@@ -386,6 +425,16 @@
           </a>
         </div>
 
+        <nav class="jump" aria-label="功能快捷跳转">
+          <span class="jump-label">直接看</span>
+          <a href="#feature-ledger">台账</a>
+          <a href="#feature-report">周期汇报</a>
+          <a href="#feature-note">笔记日志</a>
+          <a href="#feature-memo">待办提醒</a>
+          <a href="#shots">界面</a>
+          <a href="#deploy">部署</a>
+        </nav>
+
         <p class="meta">
           <span id="release-version">正在读取最新版本…</span><br />
           安装包未做代码签名。macOS 首次打开请右键 →「打开」，或执行
@@ -457,32 +506,32 @@
         </header>
 
         <div class="features">
-          <div class="feature">
+          <div class="feature" id="feature-ledger">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4.5-9 4.5L3 7.5 12 3Z" /><path d="M3 12l9 4.5 9-4.5" /><path d="M3 16.5L12 21l9-4.5" /></svg></div>
             <h3>台账：设备 · 物料 · 库存</h3>
             <p>谁在用、放在哪、值多少钱、保修到几时，一屏看清。成员只能改自己负责的那几行；借用归还、盘点差异、每次修改都留痕。手里有 Excel 就导入，迁移不费劲。</p>
           </div>
-          <div class="feature">
+          <div class="feature" id="feature-report">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" /><path d="M14 3v5h5" /><path d="M9 13h6" /><path d="M9 17h4" /></svg></div>
             <h3>周期汇报：周报 / 月报 / 日报</h3>
             <p>把现有的 Word 模版传上去，页屿自己认得出小节；你只管往每节里填，图直接贴。截止时间按「周几几点」算，每周交、单双周交、还是只交月报，都能设。</p>
           </div>
-          <div class="feature">
+          <div class="feature" id="feature-note">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3" /><path d="M12 18v3" /><path d="M3 12h3" /><path d="M18 12h3" /><circle cx="12" cy="12" r="4.2" /></svg></div>
             <h3>笔记与日志</h3>
             <p>每天一页，想到什么随手记。<code>[[双向链接]]</code> 把零散记录连成网，<code>#标签</code>、全文搜索、日历和关系图帮你把「好像记过」变成「找得到」。想搬走就导出 Markdown。</p>
           </div>
-          <div class="feature">
+          <div class="feature" id="feature-memo">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></div>
             <h3>待办与提醒</h3>
             <p>「下周问一下设备进度」这种话，记下来就不会忘。到点软件里提醒你，同一条只响一次；过了期的事红着摆在那儿，侧边栏也挂着角标。</p>
           </div>
-          <div class="feature">
+          <div class="feature" id="feature-team">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V20" /><circle cx="9.5" cy="7" r="3.2" /><path d="M17 11a3 3 0 1 0 0-6" /><path d="M21 20v-1.5a3.6 3.6 0 0 0-2.6-3.4" /></svg></div>
             <h3>成员与分组</h3>
             <p>手机号注册、管理员审批，谁在用一清二楚。按部门、方向或班组建组，筛选、分派、统计都跟着组走——设备归属也自动跟着人走。</p>
           </div>
-          <div class="feature">
+          <div class="feature" id="feature-media">
             <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="M10 9.5l5 2.5-5 2.5z" /></svg></div>
             <h3>音视频与附件</h3>
             <p>会议录像、设备异响的录音，直接拖进笔记或汇报里就能播放，不用再去文件夹里翻。合同、发票、照片也能挂着，缺什么一眼看得出来。</p>
@@ -526,14 +575,25 @@
           <p class="section-sub">桌面客户端（macOS / Windows）。登录是一个 400×500 的小窗，进去左边导航、右边干活，没有二次跳转。</p>
         </header>
         <figure class="shot shot-main">
-          <img src="assets/hero-home.jpg" alt="工作台主界面" />
+          <div class="shot-frame">
+            <a class="shot-zoom" href="assets/hero-home.jpg" target="_blank" rel="noreferrer" title="点击看大图"><img src="assets/hero-home.jpg" alt="工作台主界面" /></a>
+            <span class="callout" style="--x: 31%; --y: 31%">本周该交什么</span>
+            <span class="callout" style="--x: 84%; --y: 24%">还差谁没交</span>
+            <span class="callout" style="--x: 44%; --y: 61%">今天几件待办</span>
+          </div>
           <figcaption><strong>工作台</strong>本周该做什么、还差谁没交、今天有几件待办，进门第一眼就看完。</figcaption>
         </figure>
         <div class="shots">
-          <figure class="shot"><img src="assets/shot-assets.jpg" alt="资产台账" /><figcaption><strong>台账</strong>筛选、使用小组、行内编辑与借用记录</figcaption></figure>
-          <figure class="shot"><img src="assets/shot-notes.jpg" alt="笔记与日报" /><figcaption><strong>笔记与日报</strong>双向链接、标签与关联面板</figcaption></figure>
-          <figure class="shot"><img src="assets/shot-memos.jpg" alt="待办备忘录" /><figcaption><strong>待办与提醒</strong>逾期高亮、分组与到期提醒</figcaption></figure>
-          <figure class="shot"><img src="assets/shot-groups.jpg" alt="成员与分组" /><figcaption><strong>成员与分组</strong>建组、归类、按组筛选</figcaption></figure>
+          <figure class="shot"><a class="shot-zoom" href="assets/shot-assets.jpg" target="_blank" rel="noreferrer" title="点击看大图"><img src="assets/shot-assets.jpg" alt="资产台账" /></a><figcaption><strong>台账</strong>筛选、使用小组、行内编辑与借用记录</figcaption></figure>
+          <figure class="shot">
+            <div class="shot-frame">
+              <a class="shot-zoom" href="assets/shot-notes.jpg" target="_blank" rel="noreferrer" title="点击看大图"><img src="assets/shot-notes.jpg" alt="笔记与日报" /></a>
+              <span class="callout callout-sm" style="--x: 86%; --y: 40%">反链：谁引用了我</span>
+            </div>
+            <figcaption><strong>笔记与日志</strong>双向链接、标签与关联面板</figcaption>
+          </figure>
+          <figure class="shot"><a class="shot-zoom" href="assets/shot-memos.jpg" target="_blank" rel="noreferrer" title="点击看大图"><img src="assets/shot-memos.jpg" alt="待办备忘录" /></a><figcaption><strong>待办与提醒</strong>逾期高亮、分组与到期提醒</figcaption></figure>
+          <figure class="shot"><a class="shot-zoom" href="assets/shot-groups.jpg" target="_blank" rel="noreferrer" title="点击看大图"><img src="assets/shot-groups.jpg" alt="成员与分组" /></a><figcaption><strong>成员与分组</strong>建组、归类、按组筛选</figcaption></figure>
         </div>
       </div>
     </section>
